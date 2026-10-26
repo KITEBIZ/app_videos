@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Entrar · Estúdio v2</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Entrada com Face ID (20/10/2026, entrada.py): mesmas cores do estúdio */
+:root{--fundo:#0a1748;--cartao:#13235f;--linha:#2a3d86;--texto:#f4f6ff;--apagado:#b8c3ea;--amarelo:#ffc933;--rosa:#ff8a95;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--fundo);color:var(--texto);font-family:'Source Sans 3',system-ui,sans-serif}
+main{min-height:100%;max-width:420px;margin:0 auto;padding:calc(48px + env(safe-area-inset-top,0px)) 16px 32px;display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center}
+img{height:44px;width:auto}
+h1{font-family:Montserrat,sans-serif;font-weight:900;font-size:22px;margin:8px 0 0}
+p{margin:0;color:var(--apagado);font-size:15px;line-height:1.4}
+button{font:inherit;font-weight:700;font-size:17px;border:0;border-radius:12px;padding:16px;width:100%;cursor:pointer;background:var(--amarelo);color:var(--fundo)}
+button.leve{background:transparent;color:var(--apagado);font-weight:600;font-size:15px;padding:8px;text-decoration:underline}
+button:disabled{opacity:.6}
+button:focus-visible,input:focus-visible{outline:2px solid var(--amarelo);outline-offset:2px}
+form{display:flex;flex-direction:column;gap:12px;width:100%}
+input{font:inherit;font-size:17px;width:100%;padding:14px;border-radius:12px;border:1px solid var(--linha);background:var(--cartao);color:var(--texto)}
+#aviso{min-height:1.4em;color:var(--rosa);font-weight:600}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <img src="/logo.png" alt="NewsBR360">
+  <h1>Estúdio</h1>
+
+  <section id="passo-face" hidden style="width:100%;display:flex;flex-direction:column;gap:12px">
+    <button id="entrar-face">Entrar com Face ID</button>
+    <button class="leve" id="usar-senha">Entrar com a senha</button>
+  </section>
+
+  <form id="passo-senha" hidden>
+    <p>Primeira vez neste aparelho: entre com a senha e depois cadastre o Face ID.</p>
+    <input type="text" name="username" value="alexandre" autocomplete="username" hidden>
+    <input id="senha" type="password" autocomplete="current-password" placeholder="Senha" aria-label="Senha" required>
+    <button type="submit">Entrar</button>
+  </form>
+
+  <section id="passo-cadastro" hidden style="width:100%;display:flex;flex-direction:column;gap:12px">
+    <p>Pronto. Quer entrar só com o Face ID nas próximas vezes, neste aparelho?</p>
+    <button id="cadastrar">Cadastrar Face ID</button>
+    <button class="leve" id="pular">Agora não</button>
+  </section>
+
+  <p id="aviso" role="status"></p>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const volta = () => location.replace("/");
+const aviso = t => { $("aviso").textContent = t || ""; };
+const mostrar = id => ["passo-face", "passo-senha", "passo-cadastro"].forEach(p => $(p).hidden = p !== id);
+
+const b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const bin = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), c => c.charCodeAt(0));
+
+async function api(caminho, corpo) {
+  const r = await fetch("/api/entrada/" + caminho, {method: corpo === undefined ? "GET" : "POST",
+    headers: {"Content-Type": "application/json"}, body: corpo === undefined ? undefined : JSON.stringify(corpo)});
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.erro || "não deu certo");
+  return d;
+}
+
+function credencialJSON(c) {
+  const r = c.response, out = {id: c.id, rawId: b64(c.rawId), type: c.type, response: {clientDataJSON: b64(r.clientDataJSON)}};
+  if (r.attestationObject) {
+    out.response.attestationObject = b64(r.attestationObject);
+    if (r.getTransports) out.response.transports = r.getTransports();
+  } else {
+    out.response.authenticatorData = b64(r.authenticatorData);
+    out.response.signature = b64(r.signature);
+    if (r.userHandle) out.response.userHandle = b64(r.userHandle);
+  }
+  out.clientExtensionResults = c.getClientExtensionResults ? c.getClientExtensionResults() : {};
+  return out;
+}
+
+async function entrarFace() {
+  aviso(""); $("entrar-face").disabled = true;
+  try {
+    const op = await api("opcoes-entrar", {});
+    op.challenge = bin(op.challenge);
+    (op.allowCredentials || []).forEach(c => c.id = bin(c.id));
+    const c = await navigator.credentials.get({publicKey: op});
+    await api("entrar", credencialJSON(c));
+    volta();
+  } catch (e) {
+    aviso(e.name === "NotAllowedError" ? "Cancelado. Toque de novo para tentar." : e.message);
+  } finally { $("entrar-face").disabled = false; }
+}
+
+async function cadastrar() {
+  aviso(""); $("cadastrar").disabled = true;
+  try {
+    const op = await api("opcoes-cadastro", {});
+    op.challenge = bin(op.challenge);
+    op.user.id = bin(op.user.id);
+    (op.excludeCredentials || []).forEach(c => c.id = bin(c.id));
+    const c = await navigator.credentials.create({publicKey: op});
+    const nome = /iPhone/.test(navigator.userAgent) ? "iPhone" : /iPad/.test(navigator.userAgent) ? "iPad" : /Mac/.test(navigator.userAgent) ? "Mac" : "aparelho";
+    await api("cadastrar", {credencial: credencialJSON(c), nome});
+    volta();
+  } catch (e) {
+    aviso(e.name === "InvalidStateError" ? "Este aparelho já está cadastrado." : e.name === "NotAllowedError" ? "Cancelado." : e.message);
+  } finally { $("cadastrar").disabled = false; }
+}
+
+$("entrar-face").onclick = entrarFace;
+$("usar-senha").onclick = () => { aviso(""); mostrar("passo-senha"); $("senha").focus(); };
+$("cadastrar").onclick = cadastrar;
+$("pular").onclick = volta;
+$("passo-senha").onsubmit = async ev => {
+  ev.preventDefault(); aviso("");
+  try {
+    await api("senha", {senha: $("senha").value});
+    window.PublicKeyCredential ? mostrar("passo-cadastro") : volta();
+  } catch (e) { aviso(e.message); }
+};
+
+api("estado").then(d => {
+  if (d.dentro) return mostrar("passo-cadastro");      // já dentro: abrir /entrar serve para cadastrar outro aparelho
+  if (d.tem_chaves && window.PublicKeyCredential) mostrar("passo-face"); else mostrar("passo-senha");
+}).catch(() => mostrar("passo-senha"));
+</script>
+</body>
+</html>

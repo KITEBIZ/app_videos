@@ -1,0 +1,120 @@
+<!-- #368 · micro doc no molde números, montado à mão (24/10/2026, "pode fazer o molde números"; ele: "podemos usar nossas
+     animacoes e tudo mais sobre as fotos de fundo. e quando tiver video usamos videos"). Referência: os reels
+     DePqpN0gX9G e DeRgAHbAJ9e. Fotos: material/colagem/creditos.json (Wikimedia Commons, licença livre, crédito na tela).
+     A versão em colagem ficou guardada no scratchpad da sessão (368-caminho-antigo). -->
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" style="position:absolute;inset:0">
+  <!-- bloco 6: o caminho da propina, segundo o MPF (desenhado: nenhuma peça faz) -->
+  <g class="fluxo" font-family="Montserrat" font-weight="900">
+    <g class="f1" opacity="0"><rect x="80" y="560" width="400" height="96" fill="#f4f6ff"/>
+      <text x="280" y="623" text-anchor="middle" font-size="38" fill="#0a1748">EMPREITEIRAS</text></g>
+    <g class="f2" opacity="0"><path d="M280 672 V742" stroke="#ffc933" stroke-width="8"/><path d="M262 734 L280 760 L298 734 Z" fill="#ffc933"/>
+      <text x="320" y="726" font-size="30" fill="#ffc933">PROPINA · CERCA DE 3%</text>
+      <rect x="80" y="776" width="400" height="96" fill="#9cbcff"/>
+      <text x="280" y="839" text-anchor="middle" font-size="38" fill="#0a1748">DIRETORES</text></g>
+    <g class="f3" opacity="0"><path d="M280 888 V958" stroke="#ffc933" stroke-width="8"/><path d="M262 950 L280 976 L298 950 Z" fill="#ffc933"/>
+      <text x="320" y="942" font-size="30" fill="#ffc933">PARTE DELA</text>
+      <rect x="80" y="992" width="400" height="96" fill="#ff4d5e"/>
+      <text x="280" y="1055" text-anchor="middle" font-size="38" fill="#f4f6ff">PARTIDOS</text></g>
+  </g>
+</svg>
+<script>
+window.DESTAQUE = ['corrupção', 'orgulho', 'Nosso.', '1953', 'monopólio.', '1997,', 'pré-sal,', 'Mas', 'padrinho', 'propina',
+                   'partidos', 'estatais', 'oito', 'três', 'recorde', 'triplicou', 'protege', 'manda', 'cabide?', 'Comenta,', 'segue'];
+
+function montar(tl, T) {
+  const N = T.numeros, P = (n, w, k) => T.palavra(n, w, k), B = n => T.bloco(n);
+  const F = 'material/colagem/';
+
+  // a régua dos capítulos, o vídeo inteiro depois da abertura
+  N.regua({capitulos: [['origem', B(2).ini], ['abertura', B(3).ini], ['pré-sal', B(4).ini], ['petrolão', P(5, 'Mas')],
+                       ['a trava', B(7).ini], ['hoje', B(8).ini]], fim: B(10).ini});
+
+  // 1 · o recibo da corrupção
+  N.fundo({src: F + 'sede-petrobras.jpg', ini: 0, fim: B(2).ini, foco: '50% 40%', credito: 'Rodrigo Soldon (CC BY 2.0)'});
+  N.titulo({texto: 'A Petrobras\n<b>admitiu</b>', sobre: 'balanço de 2014', ini: 0, fim: P(1, 'Como'), y: 360, tam: 84});
+  N.numero({valor: '6,19', antes: 'R$', unidade: 'bi', rotulo: 'perda com corrupção', fonte: 'balanço da Petrobras, 22/04/2015',
+            ini: 0, fim: P(1, 'Como'), y: 840, tam: 270});   // o número já no 0 s: o primeiro quadro faz parar
+  T.selo('CONFIRMADO', P(1, '6'), {cx: 720, cy: 1040, larg: 330, sai: B(2).ini - .1});
+  N.titulo({texto: 'Como o <b>orgulho</b>\ndo país\nchegou aí?', ini: P(1, 'Como'), fim: B(2).ini, y: 640, tam: 92});
+
+  // 2 · a origem
+  N.troca(B(2).ini);
+  N.fundo({src: F + 'getulio-1951.jpg', ini: B(2).ini, fim: B(3).ini, foco: '50% 25%', credito: 'Agência Nacional (domínio público)'});
+  N.titulo({texto: 'O petróleo\né <b>nosso</b>', sobre: 'a campanha · 1947 a 1953', ini: B(2).ini + .1, fim: B(3).ini, y: 360, tam: 84});
+  N.numero({valor: '1953', conta: false, rotulo: 'Getúlio Vargas cria a Petrobras', fonte: 'Lei 2.004, de 3/10/1953',
+            ini: P(2, '1953'), fim: B(3).ini, y: 860, tam: 260});
+  N.alerta({texto: 'com monopólio', ini: P(2, 'monopólio.'), fim: B(3).ini, y: 990, cor: 'amarelo', x: 86});
+
+  // 3 · a abertura
+  N.troca(B(3).ini);
+  N.fundo({src: F + 'fhc-congresso.jpg', ini: B(3).ini, fim: B(4).ini, foco: '50% 35%', credito: 'Élcio Alvares (CC BY 2.0)'});
+  N.numero({valor: '1997', conta: false, rotulo: 'uma lei abre o setor', fonte: 'Lei 9.478/1997, que cria a ANP',
+            ini: P(3, '1997,'), fim: B(4).ini, y: 860, tam: 260});
+  N.titulo({texto: 'Fim do\n<b>monopólio</b>', sobre: 'a abertura', ini: P(3, 'lei'), fim: B(4).ini, y: 360, tam: 84});
+
+  // 4 · o pré-sal
+  N.troca(B(4).ini);
+  N.fundo({src: F + 'plataforma-p52.jpg', ini: B(4).ini, fim: B(5).ini, foco: '45% 50%', credito: 'Ricardo Stuckert/PR (CC BY 3.0 br)'});
+  N.titulo({texto: 'A euforia\ndo <b>pré-sal</b>', sobre: '2007 · dez anos depois', ini: B(4).ini + .1, fim: B(5).ini, y: 360, tam: 84});
+  N.numero({valor: '8', antes: 'até', unidade: 'bi de barris', rotulo: 'só no campo de Tupi', fonte: 'estimativa da Petrobras, 8/11/2007',
+            ini: P(4, '8'), fim: B(5).ini, y: 860, tam: 280});
+  T.selo('PREVISÃO', P(4, '8') + .2, {cx: 720, cy: 1050, larg: 330, sai: B(5).ini - .05});
+
+  // 5 · a virada: o fundo fica vermelho no "Mas"
+  N.fundo({src: F + 'sede-petrobras-pe.jpg', ini: B(5).ini, fim: P(5, 'Mas'), foco: '50% 30%', credito: 'Wilfredor (CC BY-SA 4.0)'});
+  N.titulo({texto: 'Era <b>orgulho</b>\nde novo', ini: B(5).ini, fim: P(5, 'Mas'), y: 640, tam: 92});
+  N.troca(P(5, 'Mas'));
+  T.som('impacto-doc', P(5, 'Mas'));
+  N.fundo({src: F + 'sede-petrobras-pe.jpg', ini: P(5, 'Mas'), fim: B(6).ini, foco: '50% 30%', tom: 'vermelho', zoom: 1.12, credito: 'Wilfredor (CC BY-SA 4.0)'});
+  N.alerta({texto: 'análise', ini: P(5, 'Mas'), fim: B(6).ini, y: 250});
+  N.titulo({texto: 'Empresa rica\n+ <b>padrinho político</b>', ini: P(5, 'empresa'), fim: B(6).ini, y: 420, tam: 76});
+  N.numero({valor: 'ALVO FÁCIL', conta: false, ini: P(5, 'vira'), fim: B(6).ini, y: 900, tam: 170, cor: 'amarelo'});
+
+  // 6 · o petrolão
+  N.troca(B(6).ini);
+  N.fundo({src: F + 'pf-lava-jato.jpg', ini: B(6).ini, fim: B(7).ini, foco: '50% 40%', tom: 'vermelho', credito: 'Tânia Rêgo (CC BY 3.0 br)'});
+  N.titulo({texto: 'O caminho\nda <b>propina</b>', sobre: 'Lava Jato · segundo o MPF', ini: B(6).ini + .1, fim: B(7).ini, y: 360, tam: 76});
+  [['.f1', P(6, 'Empreiteiras')], ['.f2', P(6, 'propina')], ['.f3', P(6, 'partidos')]].forEach(([s, t]) => {
+    tl.fromTo(s, {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: .3, ease: 'power3.out'}, t); T.som('click-soft', t);
+  });
+  tl.to('.fluxo', {opacity: 0, duration: .2}, B(7).ini);
+
+  // 7 · a resposta
+  N.troca(B(7).ini);
+  N.fundo({src: F + 'congresso.jpg', ini: B(7).ini, fim: B(8).ini, foco: '50% 45%', credito: 'Arley da Cruz (CC BY-SA 4.0)'});
+  N.numero({valor: '2016', conta: false, rotulo: 'Lei 13.303, art. 17', fonte: 'Planalto', ini: P(7, '2016'), fim: B(8).ini, y: 860, tam: 260});
+  N.titulo({texto: 'Lei das\n<b>Estatais</b>', sobre: 'a resposta', ini: P(7, 'lei'), fim: B(8).ini, y: 360, tam: 84});
+  N.alerta({texto: 'dirigente de partido fora', ini: P(7, 'proibiu'), fim: B(8).ini, y: 990, cor: 'amarelo', x: 86});
+
+  // 8 · o Supremo e hoje
+  N.troca(B(8).ini);
+  N.fundo({src: F + 'stf-fachada.jpg', ini: B(8).ini, fim: P(8, 'hoje'), foco: '50% 40%', credito: 'Agência Senado (CC BY 2.0)'});
+  N.titulo({texto: 'O Supremo\n<b>manteve</b>', sobre: 'STF · maio de 2024 · ADI 7331', ini: P(8, 'Supremo'), fim: P(8, 'hoje'), y: 360, tam: 84});
+  N.barra({partes: [['manter a trava', 8, 'amarelo', '8 votos'], ['derrubar', 3, 'cinza', '3']], titulo: 'a votação',
+           ini: P(8, 'oito'), fim: P(8, 'hoje'), y: 900});
+  T.selo('CONFIRMADO', P(8, 'manteve'), {cx: 720, cy: 680, larg: 330, sai: P(8, 'hoje') - .05});
+  N.troca(P(8, 'hoje'));
+  N.fundo({src: F + 'plataforma-p51.jpg', ini: P(8, 'hoje'), fim: B(9).ini, foco: '50% 50%', credito: 'Petrobras/ABr (CC BY 3.0 br)'});
+  N.titulo({texto: 'Recorde de\n<b>produção</b>', sobre: 'hoje', ini: P(8, 'hoje'), fim: B(9).ini, y: 360, tam: 84});
+  N.numero({valor: '2,99', unidade: 'mi barris/dia', rotulo: 'produção em 2025', fonte: 'Petrobras', ini: P(8, 'hoje'), fim: P(8, 'quase') - .05, y: 860, tam: 220});
+  N.barras({itens: [['2024', 36.6, 'R$ 36,6 bi'], ['2025', 110.6, 'R$ 110,6 bi']], titulo: 'lucro líquido', fonte: 'balanços da Petrobras (B3)',
+            ini: P(8, 'quase'), passo: [P(8, 'quase'), P(8, 'triplicou')], fim: B(9).ini, y: 760});
+
+  // 9 · a conclusão (análise)
+  N.troca(B(9).ini);
+  N.fundo({src: F + 'sede-petrobras.jpg', ini: B(9).ini, fim: B(10).ini, foco: '30% 40%', tom: 'cinza', credito: 'Rodrigo Soldon (CC BY 2.0)'});
+  N.alerta({texto: 'análise · opinião do canal', ini: B(9).ini, fim: B(10).ini, y: 250});
+  N.titulo({texto: 'Lucro <b>não</b>\nprotege', ini: B(9).ini + .1, fim: P(9, 'tirar') - .1, y: 640, tam: 100});
+  N.titulo({texto: 'Tirar dos políticos\na escolha de\n<b>quem manda</b>', ini: P(9, 'tirar'), fim: B(10).ini, y: 600, tam: 80});
+
+  // 10 · o convite
+  N.troca(B(10).ini);
+  N.fundo({src: F + 'getulio-1951.jpg', ini: B(10).ini, fim: null, foco: '50% 25%', tom: 'cinza', credito: 'Agência Nacional (domínio público)'});
+  N.titulo({texto: 'Essa trava\n<b>basta</b>?', ini: B(10).ini, fim: P(10, 'Comenta,'), y: 620, tam: 110});
+  N.comenta({palavra: 'SIM OU NÃO', sobre: 'comenta', ini: P(10, 'Comenta,'), fim: P(10, 'segue'), y: 640});
+  N.alerta({texto: 'manda para quem cresceu ouvindo isso', ini: P(10, 'manda'), fim: P(10, 'segue'), y: 900, cor: 'azul', x: 86});
+  N.numero({valor: '354', rotulo: 'faltam para os 10 mil · segue a página', ini: P(10, 'segue'), y: 820, tam: 240, cor: 'amarelo'});
+
+  T.assinatura();
+}
+</script>

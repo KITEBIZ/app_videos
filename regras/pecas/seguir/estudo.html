@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Convite para seguir · estudo</title>
+<style>
+@font-face { font-family: "Montserrat"; src: url("../../../web/fontes/montserrat-latin.woff2") format("woff2"); font-weight: 400 900; }
+:root { --fundo: #0a1748; --texto: #f4f6ff; --apagado: #9cbcff; --amarelo: #ffc933; --verde: #3ddc84; --vermelho: #ff4d5e; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fundo); color: var(--texto); font: 15px/1.45 Montserrat, system-ui, sans-serif; }
+main { max-width: 1180px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 22px; margin: 0 0 4px; } p.sub { color: var(--apagado); margin: 0 0 20px; max-width: 900px; }
+.grade { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+figure { margin: 0; width: 360px; max-width: 100%; }
+figcaption { margin-top: 10px; } figcaption b { color: var(--amarelo); } figcaption span { color: var(--apagado); font-size: 13px; display: block; }
+.tela { width: 360px; height: 640px; position: relative; overflow: hidden; border-radius: 18px; border: 1px solid #3a4f9c; }
+.palco { width: 1080px; height: 1920px; position: absolute; left: 0; top: 0; transform: scale(.3333); transform-origin: 0 0; background: url("fundo.png") center/cover; }
+.anim { animation-duration: 4s; animation-iteration-count: infinite; animation-timing-function: ease-out; }
+
+/* o que o próprio Instagram desenha por cima (não vai no vídeo): nome de quem publicou, Seguir, legenda do post, ícones */
+.app { position: absolute; inset: 0; pointer-events: none; }
+.app-base { position: absolute; left: 40px; right: 120px; top: 1600px; display: flex; flex-direction: column; gap: 18px; }
+.app-linha { display: flex; align-items: center; gap: 18px; font-weight: 700; font-size: 30px; white-space: nowrap; text-shadow: 0 2px 8px rgba(0,0,0,.8); }
+.app-avatar { width: 76px; height: 76px; border-radius: 50%; background: #9cbcff; border: 3px solid #fff; }
+.app-seguir { padding: 8px 22px; border: 3px solid #fff; border-radius: 14px; font-size: 30px; }
+.app-legenda { font-size: 28px; font-weight: 500; opacity: .85; }
+.app-icones { position: absolute; right: 36px; top: 1180px; display: flex; flex-direction: column; gap: 70px; }
+.app-icones span { width: 80px; height: 80px; border-radius: 50%; border: 5px solid rgba(255,255,255,.85); }
+.app-tag { position: absolute; left: 40px; top: 1545px; font-size: 24px; color: #ffc933; font-weight: 700; letter-spacing: .5px; }
+
+/* ---------- A: o botão Seguir (genérico, sem nome de perfil) ---------- */
+.a-pilula { position: absolute; left: 60px; top: 1130px; height: 130px; display: flex; align-items: center; gap: 24px;
+  padding: 0 22px 0 16px; border-radius: 70px; background: rgba(10,23,72,.95); border: 3px solid rgba(156,188,255,.5);
+  box-shadow: 0 10px 40px rgba(0,0,0,.45); animation-name: a-entra; }
+.a-anel { width: 96px; height: 96px; border-radius: 50%; padding: 7px; background: conic-gradient(var(--vermelho), #9cbcff, var(--amarelo), var(--vermelho)); }
+.a-anel b { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; background: #0a1748; font-size: 52px; color: var(--amarelo); }
+.a-nome { font-weight: 800; font-size: 44px; line-height: 1.1; } .a-nome small { display: block; font-weight: 600; font-size: 28px; color: var(--apagado); }
+.a-botao { position: relative; min-width: 260px; height: 88px; border-radius: 18px; font-weight: 800; font-size: 40px; overflow: hidden; }
+.a-botao i, .a-botao u { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; text-decoration: none; border-radius: 18px; }
+.a-botao i { background: #2d7cff; color: #fff; animation: a-some 4s infinite; }
+.a-botao u { background: #26324f; color: var(--texto); animation: a-aparece 4s infinite; }
+.a-toque { position: absolute; width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,.75); right: 90px; top: 4px; opacity: 0; animation: a-toque 4s infinite; }
+@keyframes a-entra { 0%,12% { transform: translateX(-140%); opacity: 0 } 22% { transform: translateX(0); opacity: 1 } 78% { transform: translateX(0); opacity: 1 } 90%,100% { transform: translateX(-140%); opacity: 0 } }
+@keyframes a-toque { 0%,36% { opacity: 0; transform: scale(.4) } 40% { opacity: 1; transform: scale(1) } 48% { opacity: 0; transform: scale(1.6) } 100% { opacity: 0 } }
+@keyframes a-some { 0%,40% { opacity: 1 } 43%,100% { opacity: 0 } }
+@keyframes a-aparece { 0%,40% { opacity: 0 } 43%,100% { opacity: 1 } }
+
+/* ---------- B: aponta para o Seguir do próprio app ---------- */
+.b-caixa { position: absolute; left: 60px; top: 1110px; width: 640px; animation-name: b-entra; }
+.b-texto { display: inline-block; padding: 18px 26px; border-radius: 18px; background: var(--amarelo); color: #0a1748; font-weight: 900; font-size: 44px; line-height: 1.1;
+  box-shadow: 0 10px 40px rgba(0,0,0,.45); }
+.b-texto small { display: block; font-weight: 700; font-size: 28px; }
+.b-seta { position: absolute; left: 650px; top: 190px; font-size: 120px; line-height: 1; color: var(--amarelo); text-shadow: 0 4px 16px rgba(0,0,0,.7);
+  animation: b-pula .6s infinite alternate ease-in-out; }
+@keyframes b-entra { 0%,12% { opacity: 0; transform: translateY(40px) } 20% { opacity: 1; transform: translateY(0) } 80% { opacity: 1 } 90%,100% { opacity: 0 } }
+@keyframes b-pula { from { transform: translateY(0) } to { transform: translateY(28px) } }
+.b-brilho { position: absolute; left: 700px; top: 1598px; width: 172px; height: 85px; border-radius: 18px; box-shadow: 0 0 0 0 rgba(255,201,51,.9); animation: b-brilho 4s infinite; }
+@keyframes b-brilho { 0%,24% { box-shadow: 0 0 0 0 rgba(255,201,51,0) } 30% { box-shadow: 0 0 0 10px rgba(255,201,51,.9) } 45% { box-shadow: 0 0 0 26px rgba(255,201,51,0) } 50% { box-shadow: 0 0 0 10px rgba(255,201,51,.9) } 65%,100% { box-shadow: 0 0 0 26px rgba(255,201,51,0) } }
+
+/* ---------- C: faixa com o sino ---------- */
+.c-faixa { position: absolute; left: 50px; right: 190px; top: 1150px; height: 116px; border-radius: 14px; display: flex; align-items: center; gap: 22px;
+  padding: 0 26px; background: rgba(10,23,72,.95); border-left: 12px solid var(--amarelo); box-shadow: 0 10px 40px rgba(0,0,0,.45); animation-name: c-entra; overflow: hidden; }
+.c-sino { font-size: 60px; animation: c-sino 4s infinite; transform-origin: 50% 10%; }
+.c-texto { font-weight: 800; font-size: 42px; white-space: nowrap; } .c-texto b { color: var(--amarelo); }
+.c-texto small { display: block; font-weight: 600; font-size: 28px; color: var(--apagado); }
+@keyframes c-entra { 0%,12% { transform: translateY(160px); opacity: 0 } 20% { transform: translateY(0); opacity: 1 } 80% { transform: translateY(0); opacity: 1 } 90%,100% { transform: translateY(160px); opacity: 0 } }
+@keyframes c-sino { 0%,30% { transform: rotate(0) } 34% { transform: rotate(18deg) } 38% { transform: rotate(-16deg) } 42% { transform: rotate(12deg) } 46% { transform: rotate(-8deg) } 50%,100% { transform: rotate(0) } }
+
+.nota { margin-top: 28px; color: var(--apagado); font-size: 14px; max-width: 900px; } .nota b { color: var(--texto); }
+</style>
+</head>
+<body>
+<main>
+<h1>Convite para seguir · 3 opções genéricas</h1>
+<p class="sub">Sem nome de perfil: serve no @newsbr360, no @alexandremota.digital e em colaboração. Cada uma aparece por uns 2,5 s, entre 12 e 15 s e no placar final. A voz não muda. O que está embaixo com borda branca (nome, "Seguir", legenda, ícones) é o próprio Instagram, desenhado aqui só para ver onde fica; não vai no vídeo.</p>
+<div class="grade">
+  <figure><div class="tela"><div class="palco">
+    <div class="a-pilula anim"><div class="a-anel"><b>+</b></div><div class="a-nome">Gostou?<small>siga o perfil</small></div>
+      <div class="a-botao"><i>Seguir</i><u>Seguindo ✓</u><span class="a-toque"></span></div></div>
+    <div class="app"><span class="app-tag">O APP DESENHA ISTO</span><div class="app-base"><div class="app-linha"><span class="app-avatar"></span>newsbr360 e alexandremota.digital <span class="app-seguir">Seguir</span></div><div class="app-legenda">A primeira-dama gravou um vídeo...</div></div><div class="app-icones"><span></span><span></span><span></span></div></div>
+  </div></div><figcaption><b>A · O botão Seguir</b><span>"Gostou? Siga o perfil" com o botão que recebe o toque e vira "Seguindo ✓". Sem nome: vale nos dois perfis.</span></figcaption></figure>
+
+  <figure><div class="tela"><div class="palco">
+    <div class="b-caixa anim"><div class="b-texto">Toque em SEGUIR<small>aqui embaixo, para a próxima checagem</small></div><div class="b-seta">⬇</div></div>
+    <span class="b-brilho"></span>
+    <div class="app"><span class="app-tag">O APP DESENHA ISTO</span><div class="app-base"><div class="app-linha"><span class="app-avatar"></span>newsbr360 e alexandremota.digital <span class="app-seguir">Seguir</span></div><div class="app-legenda">A primeira-dama gravou um vídeo...</div></div><div class="app-icones"><span></span><span></span><span></span></div></div>
+  </div></div><figcaption><b>B · Aponta para o Seguir do app</b><span>Uma seta mostra o "Seguir" que o próprio Instagram põe ao lado do nome. A pessoa segue ali mesmo, sem sair do vídeo, e o app já mostra os dois perfis na colaboração.</span></figcaption></figure>
+
+  <figure><div class="tela"><div class="palco">
+    <div class="c-faixa anim"><span class="c-sino">🔔</span><div class="c-texto">SIGA <b>O PERFIL</b><small>toda checagem com o documento</small></div></div>
+    <div class="app"><span class="app-tag">O APP DESENHA ISTO</span><div class="app-base"><div class="app-linha"><span class="app-avatar"></span>newsbr360 e alexandremota.digital <span class="app-seguir">Seguir</span></div><div class="app-legenda">A primeira-dama gravou um vídeo...</div></div><div class="app-icones"><span></span><span></span><span></span></div></div>
+  </div></div><figcaption><b>C · A faixa com o sino</b><span>"Siga o perfil · toda checagem com o documento", o sino balança. Mais telejornal.</span></figcaption></figure>
+</div>
+<p class="nota"><b>Atenção à posição do "Seguir" do app:</b> o Instagram muda de lugar entre versões e entre celular e computador; a seta da B aponta para onde ele costuma ficar no celular (embaixo, à esquerda, ao lado do nome). <b>Tamanho:</b> textos 20% maiores que na primeira versão. <b>Fora:</b> faixa da legenda (y 1290-1400), coluna de ícones à direita.</p>
+</main>
+<script>
+const t = parseFloat(new URLSearchParams(location.search).get('t'));
+if (!isNaN(t)) document.querySelectorAll('*').forEach(e => { const s = getComputedStyle(e); if (s.animationName && s.animationName !== 'none') { e.style.animationDelay = `-${t}s`; e.style.animationPlayState = 'paused'; } });
+</script>
+</body>
+</html>

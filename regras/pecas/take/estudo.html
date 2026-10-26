@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Peça take com crédito</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Estudo da peça "take com crédito" (17/10/2026; ele: "mostra como ficaria a peça take com crédito").
+     Só desenho para ele ver; ainda não é peça do tocador. Posições escolhidas pelas zonas da régua
+     (ferramentas/regua.py: texto abaixo de y 205, entre x 50 e 1030, e antes de x 900 na faixa dos ícones, y 765-1645)
+     e pela legenda do tocador (y 1340, até 700 px de largura, x 190-890). -->
+<style>
+@font-face { font-family: "Montserrat"; src: url("montserrat-latin.woff2") format("woff2"); font-weight: 400 900; }
+@font-face { font-family: "Impact"; src: url("../../../web/fontes/impact.ttf") format("truetype"); }
+:root { --fundo: #0a1748; --amarelo: #ffc933; --azul: #9cbcff; --branco: #F4F6FF; --vermelho: #ff4d5e; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #060f33; color: var(--branco); font-family: "Montserrat", sans-serif; padding: 24px 16px 48px; }
+h1 { font-size: 22px; margin: 0 0 6px; }
+p.sub { margin: 0 0 22px; color: var(--azul); font-size: 14px; max-width: 900px; line-height: 1.5; }
+.grade { display: flex; flex-wrap: wrap; gap: 22px; }
+.col { width: 324px; }
+.col h2 { font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--amarelo); margin: 0 0 4px; }
+.col p { font-size: 12.5px; color: var(--azul); margin: 0 0 10px; line-height: 1.45; min-height: 54px; }
+.tela { width: 324px; height: 576px; overflow: hidden; border-radius: 18px; position: relative; box-shadow: 0 0 0 1px #2a3d86; }
+.tela > .q { width: 1080px; height: 1920px; transform: scale(.3); transform-origin: 0 0; position: absolute; left: 0; top: 0;
+  background: linear-gradient(160deg, #1d3fae 0%, #12298a 45%, #0a1748 100%); overflow: hidden; }
+.tela > img.antes { width: 100%; height: 100%; object-fit: cover; }
+.listras { position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 90px, transparent 90px 260px); }
+/* a peça */
+.rotulo { position: absolute; top: 236px; left: 50%; transform: translateX(-50%); white-space: nowrap; background: rgba(10,23,72,.85);
+  color: var(--amarelo); font-weight: 800; font-size: 30px; letter-spacing: 1px; padding: 14px 30px; border-radius: 40px; }
+.video { position: absolute; left: 0; top: 330px; width: 1080px; height: 800px; overflow: hidden; }
+.video img { width: 100%; height: 100%; object-fit: cover; object-position: 30% 50%; display: block; }
+.video::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 300px; background: linear-gradient(transparent, rgba(10,23,72,.92)); }
+.credito { position: absolute; top: 1148px; left: 60px; width: 820px; text-align: center; color: var(--azul); font-size: 24px; font-weight: 600; }
+.dele { position: absolute; top: 1040px; left: 50%; transform: translateX(-50%); background: var(--vermelho); color: #fff; font-weight: 900;
+  font-size: 34px; letter-spacing: 2px; padding: 12px 34px; border-radius: 40px; }
+.titulo { position: absolute; top: 1010px; left: 60px; width: 820px; text-align: center; font-family: "Impact", sans-serif; font-size: 96px;
+  color: var(--branco); line-height: 1; }
+.legenda { position: absolute; top: 1286px; left: 190px; width: 700px; text-align: center; font-size: 62px; font-weight: 900; color: var(--branco); white-space: nowrap; }
+.legenda b { color: var(--amarelo); font-weight: 900; }
+.legenda i { font-style: normal; opacity: .25; }
+/* com a marca do Instituto (17/10, ele: "usar o logo do instituto [...] para dar personalidade") */
+.m .rotulo { display: flex; align-items: center; gap: 18px; padding: 12px 30px 12px 22px; border: 2px solid rgba(156,188,255,.55); }
+.simb { display: inline-block; height: 40px; width: 76px; }
+.m .credito { display: flex; justify-content: center; align-items: center; gap: 14px; }
+.pontos { display: inline-flex; gap: 6px; }
+.pontos span { width: 12px; height: 12px; border-radius: 50%; display: block; }
+.m .legenda::after { content: ''; position: absolute; left: 50%; transform: translateX(-50%); top: 92px; width: 132px; height: 8px; border-radius: 4px;
+  background: linear-gradient(90deg, #ff4d5e 0 33.3%, #9cbcff 33.3% 66.6%, #ffc933 66.6% 100%); }
+.linha { width: 100%; font-size: 15px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--branco); margin: 18px 0 2px; }
+/* locutor (17/10, ele: "criar um desses para identificação de locutor quando eu falo [...] pode usar minha foto") */
+.fundo-real { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+.locutor { position: absolute; left: 60px; top: 1440px; display: flex; align-items: center; gap: 22px; background: rgba(10,23,72,.88);
+  border: 2px solid rgba(156,188,255,.55); border-radius: 80px; padding: 12px 40px 12px 12px; }
+.locutor .foto { flex: none; width: 112px; height: 112px; border-radius: 50%; padding: 5px;
+  background: conic-gradient(#ff4d5e 0 33.3%, #9cbcff 0 66.6%, #ffc933 0); }
+.locutor .foto img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; border: 4px solid #0a1748; }
+.locutor .nome { font-size: 40px; font-weight: 900; letter-spacing: 1px; color: var(--branco); line-height: 1.1; }
+.locutor .casa { display: flex; align-items: center; gap: 12px; font-size: 26px; font-weight: 700; color: var(--amarelo); margin-top: 6px; }
+.locutor .casa .simb { height: 30px; width: 57px; }
+.locutor .inst { color: #b8c2e6; font-weight: 800; font-size: 20px; letter-spacing: 6px; }
+.locutor .br { font-weight: 900; font-size: 30px; }
+.locutor .br i { font-style: normal; }
+/* locutor sem fundo (17/10, ele: "essa borda achei ruim, quem sabe tira isso. e deixa sem fundo vamos testar uns exemplos") */
+.faixa { width: 660px; height: 250px; overflow: hidden; border-radius: 14px; position: relative; box-shadow: 0 0 0 1px #2a3d86; }
+.faixa > .q { width: 1080px; height: 1920px; transform: scale(.6); transform-origin: 0 0; position: absolute; left: 0; top: -740px; overflow: hidden;
+  background: linear-gradient(160deg, #1d3fae 0%, #12298a 45%, #0a1748 100%); }
+.colx { width: 660px; }
+.colx h2 { font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--amarelo); margin: 0 0 4px; }
+.colx p { font-size: 12.5px; color: var(--azul); margin: 0 0 10px; line-height: 1.45; }
+.sf { position: absolute; left: 60px; top: 1440px; display: flex; align-items: center; gap: 24px; }
+.sf .foto { flex: none; width: 120px; height: 120px; border-radius: 50%; padding: 6px; background: conic-gradient(#ff4d5e 0 33.3%, #9cbcff 0 66.6%, #ffc933 0); }
+.sf .foto img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; border: 4px solid #0a1748; }
+.sf .foto.lisa { padding: 0; background: none; }
+.sf .foto.lisa img { border: 0; }
+.sf .nome { font-size: 44px; font-weight: 900; letter-spacing: 1px; color: var(--branco); line-height: 1.05; text-shadow: 0 2px 10px rgba(10,23,72,.8); }
+.sf .casa { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.sf .casa .simb { height: 30px; width: 57px; }
+.sf .inst { color: #b8c2e6; font-weight: 800; font-size: 20px; letter-spacing: 6px; }
+.sf .br { font-weight: 900; font-size: 30px; } .sf .br i { font-style: normal; }
+.sf .fio { width: 6px; height: 120px; border-radius: 3px; background: linear-gradient(#ff4d5e 0 33.3%, #9cbcff 0 66.6%, #ffc933 0); }
+.sf .traco { width: 170px; height: 6px; border-radius: 3px; margin-top: 10px; background: linear-gradient(90deg, #ff4d5e 0 33.3%, #9cbcff 0 66.6%, #ffc933 0); }
+/* A com o logo maior (17/10, ele: "o logo do instituto tinha que aparecer um pouquinho maior. testa") */
+.sf.m1 .casa .simb { height: 42px; width: 80px; } .sf.m1 .inst { font-size: 26px; letter-spacing: 7px; } .sf.m1 .br { font-size: 42px; }
+.sf.m2 .casa .simb { height: 52px; width: 99px; } .sf.m2 .inst { font-size: 30px; letter-spacing: 8px; } .sf.m2 .br { font-size: 52px; }
+.sf.m1 .casa, .sf.m2 .casa { gap: 16px; margin-top: 10px; }
+/* zonas da régua */
+.zona { position: absolute; background: rgba(255,77,94,.28); outline: 2px dashed rgba(255,77,94,.9); }
+.livre { position: absolute; outline: 3px dashed var(--amarelo); color: var(--amarelo); font-size: 30px; font-weight: 700; display: flex;
+  align-items: center; justify-content: center; text-align: center; padding: 10px; }
+.medida { position: absolute; left: 0; width: 1080px; border-top: 2px solid rgba(255,201,51,.8); color: var(--amarelo); font-size: 26px; font-weight: 700; padding-left: 950px; }
+</style></head>
+<body>
+<h1>Peça "take com crédito"</h1>
+<p class="sub">O mesmo lugar para cada coisa em todo vídeo: rótulo em cima, vídeo na largura toda, crédito logo embaixo do vídeo
+e a legenda abaixo, sempre com folga (a régua pede 20 px; a peça deixa uns 100). O animador só preenche quem é, o trecho, o rótulo e o crédito. As posições respeitam
+o que o Instagram corta (a régua).</p>
+<div class="grade">
+
+  <div class="col"><h2>Hoje (#211)</h2>
+    <p>O animador desenhou do zero: o crédito ficou colado na legenda. Daqui saíram 13 dos 16 problemas da régua.</p>
+    <div class="tela"><img class="antes" src="antes-211.png" alt="#211 hoje"></div></div>
+
+  <div class="col"><h2>Peça · take</h2>
+    <p>O vídeo dele mudo, por baixo da nossa voz. O título do bloco, se houver, fica sobre a parte de baixo do vídeo, como hoje.</p>
+    <div class="tela"><div class="q"><div class="listras"></div>
+      <div class="rotulo">LULA NO JORNAL NACIONAL · 15/10/2026</div>
+      <div class="video"><img src="quadro-lula.jpg" alt=""></div>
+      <div class="credito">Vídeo: Fernando Conrado · imagens TV Globo</div>
+      <div class="titulo">NÃO SABIA?</div>
+      <div class="legenda">Lula <b>disse</b> <i>no Jornal</i></div>
+    </div></div></div>
+
+  <div class="col"><h2>Peça · fala dele</h2>
+    <p>O trecho com a voz dele. O selo ELE DISSE fica no lugar do título, para quem vê sem som saber que é a fala dele.</p>
+    <div class="tela"><div class="q"><div class="listras"></div>
+      <div class="rotulo">LULA NO JORNAL NACIONAL · 15/10/2026</div>
+      <div class="video"><img src="quadro-lula-fala.jpg" alt=""></div>
+      <div class="credito">Vídeo: Fernando Conrado · imagens TV Globo</div>
+      <div class="dele">ELE DISSE</div>
+      <div class="legenda">Eu não <b>sabia</b> <i>porque é</i></div>
+    </div></div></div>
+
+  <div class="col"><h2>Onde o Instagram corta</h2>
+    <p>Em vermelho, o que a régua reprova para texto. Em amarelo, o lugar do título. Nenhum texto da peça cai no vermelho.</p>
+    <div class="tela"><div class="q"><div class="listras"></div>
+      <div class="rotulo">LULA NO JORNAL NACIONAL · 15/10/2026</div>
+      <div class="video"><img src="quadro-lula.jpg" alt=""></div>
+      <div class="credito">Vídeo: Fernando Conrado · imagens TV Globo</div>
+      <div class="legenda">Lula <b>disse</b> <i>no Jornal</i></div>
+      <div class="zona" style="left:0;top:0;width:1080px;height:205px"></div>
+      <div class="zona" style="left:0;top:205px;width:50px;height:1715px"></div>
+      <div class="zona" style="left:1030px;top:205px;width:50px;height:1715px"></div>
+      <div class="zona" style="left:900px;top:765px;width:130px;height:880px"></div>
+      <div class="livre" style="left:60px;top:990px;width:820px;height:130px">título ou ELE DISSE (sobre o vídeo)</div>
+      <div class="medida" style="top:330px">330</div><div class="medida" style="top:1130px">1130</div>
+    </div></div></div>
+
+  <div class="linha">Com a marca do Instituto br360</div>
+  <div class="col"><h2>Marca · take</h2>
+    <p>Rótulo com o símbolo das bolinhas; crédito com as três cores; um traço nas três cores embaixo da legenda.</p>
+    <div class="tela"><div class="q m"><div class="listras"></div>
+      <div class="rotulo"><svg class="simb"></svg>LULA NO JORNAL NACIONAL · 15/10/2026</div>
+      <div class="video"><img src="quadro-lula.jpg" alt=""></div>
+      <div class="credito"><span class="pontos"><span style="background:#ff4d5e"></span><span style="background:#9cbcff"></span><span style="background:#ffc933"></span></span>Vídeo: Fernando Conrado · imagens TV Globo</div>
+      <div class="titulo">NÃO SABIA?</div>
+      <div class="legenda">Lula <b>disse</b> <i>no Jornal</i></div>
+    </div></div></div>
+
+  <div class="col"><h2>Marca · fala dele</h2>
+    <p>O mesmo, com o ELE DISSE. A marca aparece em todo trecho de vídeo, sempre no mesmo lugar.</p>
+    <div class="tela"><div class="q m"><div class="listras"></div>
+      <div class="rotulo"><svg class="simb"></svg>LULA NO JORNAL NACIONAL · 15/10/2026</div>
+      <div class="video"><img src="quadro-lula-fala.jpg" alt=""></div>
+      <div class="credito"><span class="pontos"><span style="background:#ff4d5e"></span><span style="background:#9cbcff"></span><span style="background:#ffc933"></span></span>Vídeo: Fernando Conrado · imagens TV Globo</div>
+      <div class="dele">ELE DISSE</div>
+      <div class="legenda">Eu não <b>sabia</b> <i>porque é</i></div>
+    </div></div></div>
+
+  <div class="col"><h2>Marca · de perto</h2>
+    <p>Os três detalhes um pouco maiores, para ver como ficam.</p>
+    <div class="tela" style="background:#0a1748"><div class="q m" style="transform:scale(.36);left:-29px;top:-40px"><div class="listras"></div>
+      <div class="rotulo"><svg class="simb"></svg>LULA NO JORNAL NACIONAL · 15/10/2026</div>
+      <div class="video" style="height:420px"><img src="quadro-lula.jpg" alt=""></div>
+      <div class="credito" style="top:770px"><span class="pontos"><span style="background:#ff4d5e"></span><span style="background:#9cbcff"></span><span style="background:#ffc933"></span></span>Vídeo: Fernando Conrado · imagens TV Globo</div>
+      <div class="legenda" style="top:880px">Lula <b>disse</b> <i>no Jornal</i></div>
+    </div></div></div>
+
+  <div class="linha" id="locutor">Locutor · quando a voz é a sua</div>
+  <div class="col"><h2>Locutor · no vídeo</h2>
+    <p>Entra no primeiro bloco com a sua voz, uns 3 segundos, embaixo da legenda e à esquerda (longe dos ícones do Instagram). Fundo: o bloco 3 do #211.</p>
+    <div class="tela"><div class="q m"><img class="fundo-real" src="nosso-bloco.png" alt="">
+      <div class="locutor"><span class="foto"><img src="alexandre.png" alt=""></span>
+        <span><div class="nome">ALEXANDRE MOTA</div><div class="casa"><svg class="simb"></svg><span class="inst">INSTITUTO</span><span class="br"><i style="color:#009c3b">b</i><i style="color:#ffdf00">r</i><i style="color:#eef1fb">360</i></span></div></span></div>
+    </div></div></div>
+
+  <div class="col"><h2>Locutor · de perto</h2>
+    <p>Sua foto com o anel nas três cores do logo, o nome e, embaixo, o símbolo com INSTITUTO br360 nas cores da assinatura.</p>
+    <div class="tela" style="background:#0a1748"><div class="q m" style="transform:scale(.48);left:-18px;top:-620px"><div class="listras"></div>
+      <div class="locutor"><span class="foto"><img src="alexandre.png" alt=""></span>
+        <span><div class="nome">ALEXANDRE MOTA</div><div class="casa"><svg class="simb"></svg><span class="inst">INSTITUTO</span><span class="br"><i style="color:#009c3b">b</i><i style="color:#ffdf00">r</i><i style="color:#eef1fb">360</i></span></div></span></div>
+    </div></div></div>
+
+  <div class="linha" id="sem-fundo">Locutor sem fundo · exemplos (no mesmo bloco do #211)</div>
+  <div class="colx"><h2>A · só o essencial</h2><p>Sem fundo e sem borda: foto com o anel, nome e INSTITUTO br360 direto sobre a tela.</p>
+    <div class="faixa"><div class="q"><img class="fundo-real" src="nosso-bloco.png" alt=""><div class="sf"><span class="foto"><img src="alexandre.png" alt=""></span><span><div class="nome">ALEXANDRE MOTA</div><div class="casa"><svg class="simb"></svg><span class="inst">INSTITUTO</span><span class="br"><i style="color:#009c3b">b</i><i style="color:#ffdf00">r</i><i style="color:#eef1fb">360</i></span></div></span></div></div></div></div>
+  <div class="colx"><h2>B · fio nas três cores</h2><p>Um fio vertical nas cores do logo separa a foto do nome, como assinatura de telejornal.</p>
+    <div class="faixa"><div class="q"><img class="fundo-real" src="nosso-bloco.png" alt=""><div class="sf"><span class="foto"><img src="alexandre.png" alt=""></span><span class="fio"></span><span><div class="nome">ALEXANDRE MOTA</div><div class="casa"><svg class="simb"></svg><span class="inst">INSTITUTO</span><span class="br"><i style="color:#009c3b">b</i><i style="color:#ffdf00">r</i><i style="color:#eef1fb">360</i></span></div></span></div></div></div></div>
+  <div class="colx"><h2>C · traço embaixo do nome</h2><p>Foto sem anel; as três cores vão num traço curto embaixo do nome.</p>
+    <div class="faixa"><div class="q"><img class="fundo-real" src="nosso-bloco.png" alt=""><div class="sf"><span class="foto lisa"><img src="alexandre.png" alt=""></span><span><div class="nome">ALEXANDRE MOTA</div><div class="traco"></div><div class="casa"><svg class="simb"></svg><span class="inst">INSTITUTO</span><span class="br"><i style="color:#009c3b">b</i><i style="color:#ffdf00">r</i><i style="color:#eef1fb">360</i></span></div></span></div></div></div></div>
+  <div class="colx"><h2>D · sem foto</h2><p>Só o nome e a marca, para quando a tela já estiver cheia.</p>
+    <div class="faixa"><div class="q"><img class="fundo-real" src="nosso-bloco.png" alt=""><div class="sf"><span class="fio"></span><span><div class="nome">ALEXANDRE MOTA</div><div class="casa"><svg class="simb"></svg><span class="inst">INSTITUTO</span><span class="br"><i style="color:#009c3b">b</i><i style="color:#ffdf00">r</i><i style="color:#eef1fb">360</i></span></div></span></div></div></div></div>
+
+  <div class="linha" id="logo-maior">A com o logo maior</div>
+  <div class="colx"><h2>A · como estava</h2><p>O logo com 30 px de altura (br360 em 30).</p>
+    <div class="faixa"><div class="q"><img class="fundo-real" src="nosso-bloco.png" alt=""><div class="sf "><span class="foto"><img src="alexandre.png" alt=""></span><span><div class="nome">ALEXANDRE MOTA</div><div class="casa"><svg class="simb"></svg><span class="inst">INSTITUTO</span><span class="br"><i style="color:#009c3b">b</i><i style="color:#ffdf00">r</i><i style="color:#eef1fb">360</i></span></div></span></div></div></div></div>
+  <div class="colx"><h2>A1 · logo um pouco maior</h2><p>Uns 40% maior: símbolo com 42 px, br360 em 42.</p>
+    <div class="faixa"><div class="q"><img class="fundo-real" src="nosso-bloco.png" alt=""><div class="sf m1"><span class="foto"><img src="alexandre.png" alt=""></span><span><div class="nome">ALEXANDRE MOTA</div><div class="casa"><svg class="simb"></svg><span class="inst">INSTITUTO</span><span class="br"><i style="color:#009c3b">b</i><i style="color:#ffdf00">r</i><i style="color:#eef1fb">360</i></span></div></span></div></div></div></div>
+  <div class="colx"><h2>A2 · logo bem maior</h2><p>Uns 75% maior: símbolo com 52 px, br360 em 52, quase do tamanho do nome.</p>
+    <div class="faixa"><div class="q"><img class="fundo-real" src="nosso-bloco.png" alt=""><div class="sf m2"><span class="foto"><img src="alexandre.png" alt=""></span><span><div class="nome">ALEXANDRE MOTA</div><div class="casa"><svg class="simb"></svg><span class="inst">INSTITUTO</span><span class="br"><i style="color:#009c3b">b</i><i style="color:#ffdf00">r</i><i style="color:#eef1fb">360</i></span></div></span></div></div></div></div>
+
+  <div class="linha" id="final">Locutor escolhido · A1 com a foto 2</div>
+  <div class="col"><h2>No vídeo</h2>
+    <p>Sem fundo e sem borda, logo um pouco maior, foto de autor. Entra no primeiro bloco com a sua voz, uns 3 s.</p>
+    <div class="tela"><div class="q m"><img class="fundo-real" src="nosso-bloco.png" alt="">
+      <div class="sf m1"><span class="foto"><img src="fotos/f2.jpg" alt=""></span><span><div class="nome">ALEXANDRE MOTA</div><div class="casa"><svg class="simb"></svg><span class="inst">INSTITUTO</span><span class="br"><i style="color:#009c3b">b</i><i style="color:#ffdf00">r</i><i style="color:#eef1fb">360</i></span></div></span></div>
+    </div></div></div>
+  <div class="colx"><h2>De perto</h2><p>O mesmo, maior.</p>
+    <div class="faixa"><div class="q"><img class="fundo-real" src="nosso-bloco.png" alt="">
+      <div class="sf m1"><span class="foto"><img src="fotos/f2.jpg" alt=""></span><span><div class="nome">ALEXANDRE MOTA</div><div class="casa"><svg class="simb"></svg><span class="inst">INSTITUTO</span><span class="br"><i style="color:#009c3b">b</i><i style="color:#ffdf00">r</i><i style="color:#eef1fb">360</i></span></div></span></div></div></div></div>
+</div>
+<script>
+// o símbolo do Instituto: as 24 bolinhas de web/pecas/verdadometro.js (SIMB), nas cores do logo
+const SIMB = [[141,287,'#ff4d5e'],[81,287,'#ff4d5e'],[21,287,'#ff4d5e'],[37,195,'#ff4d5e'],[102,196,'#ff4d5e'],[170,199,'#ff4d5e'],
+  [84,113,'#9cbcff'],[160,123,'#9cbcff'],[156,53,'#9cbcff'],[245,144,'#9cbcff'],[244,82,'#9cbcff'],[244,21,'#9cbcff'],
+  [338,21,'#ffc933'],[338,82,'#ffc933'],[337,144,'#ffc933'],[426,53,'#ffc933'],[422,123,'#ffc933'],[498,113,'#ffc933'],
+  [412,199,'#ffc933'],[480,196,'#ffc933'],[545,195,'#ffc933'],[441,287,'#ffc933'],[501,287,'#ffc933'],[561,287,'#ffc933']];
+document.querySelectorAll('svg.simb').forEach(s => { s.setAttribute('viewBox', '0 0 582 308');
+  s.innerHTML = SIMB.map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="21" fill="${c}"/>`).join(''); });
+</script>
+
+</body></html>

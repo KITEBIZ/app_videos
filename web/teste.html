@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Roteiro às cegas · Estúdio v2</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Teste sombra Sonnet x Opus (20/10/2026, testes/sombra_sonnet.py). Layout: uma coluna de cartões, um por pedido real; A e B lado a lado no computador, um sobre o outro no celular.
+   Cores do estúdio v2 (azul-marinho e amarelo), de propósito num visual escuro só. */
+:root{
+  --fundo:#0a1748; --cartao:#13235f; --linha:#2a3d86; --texto:#f4f6ff; --apagado:#b8c3ea;
+  --amarelo:#ffc933; --azul:#9cbcff; --verde:#8fe3a8; --riscado:#8f9cc9;
+  --titulo:Montserrat,"Arial Black",system-ui,sans-serif; --corpo:"Source Sans 3",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--fundo);color:var(--texto);font-family:var(--corpo);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--titulo);font-weight:900;font-size:26px;margin:0;text-wrap:balance}
+.intro{color:var(--apagado);max-width:65ch;margin:0}
+.placar{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:14px;color:var(--apagado);font-variant-numeric:tabular-nums}
+.placar b{color:var(--amarelo)}
+.caso{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.caso.votado{border-color:var(--amarelo)}
+.cab{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.rot{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amarelo)}
+.pedido{margin:0;font-size:17px;font-style:italic;max-width:70ch}
+.pedido::before{content:"“"}.pedido::after{content:"”"}
+.lados{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:720px){.lados{grid-template-columns:1fr}}
+.lado{min-width:0;border:1px solid var(--linha);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--fundo)}
+.lado h3{font-family:var(--titulo);font-size:18px;margin:0;color:var(--azul)}
+.resp{font-size:14px;color:var(--apagado);white-space:pre-wrap;max-height:9.5em;overflow:auto;border-left:2px solid var(--linha);padding-left:10px}
+.bl{display:flex;flex-direction:column;gap:2px;font-size:15px}
+.bl .n{font-size:11px;font-weight:700;color:var(--azul);letter-spacing:.05em;text-transform:uppercase}
+.bl .antes{color:var(--riscado);text-decoration:line-through;font-size:14px}
+.bl .tela{font-size:13px;color:var(--apagado)}
+.bl .igual{font-size:13px;color:var(--riscado)}
+.votos{display:flex;flex-wrap:wrap;gap:8px}
+.votos button{font:inherit;font-weight:700;font-size:15px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--linha);
+  background:transparent;color:var(--texto);cursor:pointer}
+.votos button[aria-pressed=true]{background:var(--amarelo);color:var(--fundo);border-color:var(--amarelo)}
+.votos button:focus-visible{outline:2px solid var(--amarelo);outline-offset:2px}
+.aviso{font-size:13px;color:var(--apagado)}
+</style>
+</head>
+<body>
+<main>
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <span class="rot"><a href="/" style="color:inherit">‹ Estúdio</a> · teste Sonnet x Opus</span>
+    <h1>Qual mudança de roteiro ficou melhor?</h1>
+    <p class="intro">São pedidos reais que você fez no chat. Um lado é o que o estúdio fez de verdade, com o Opus. O outro é o mesmo pedido
+      refeito com o Sonnet, numa cópia. Cada pedido novo seu entra aqui uns 10 minutos depois. Os ainda sem resposta vêm primeiro. Não digo qual é qual. Para cada pedido, escolha o melhor.</p>
+    <div class="placar" id="placar"></div>
+    <p class="aviso" id="aviso" hidden></p>
+  </header>
+  <div id="casos" style="display:flex;flex-direction:column;gap:20px"></div>
+</main>
+
+<script>
+let CASOS = [];
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const votos = {};
+let db = null;
+
+function lado(c, x) {
+  const muda = c.blocos.filter(b => JSON.stringify(b[x]) !== JSON.stringify(b.antes));
+  const bl = c.blocos.map(b => {
+    const v = b[x], a = b.antes, igual = JSON.stringify(v) === JSON.stringify(a);
+    if (igual) return `<div class="bl"><span class="n">Bloco ${b.n}</span><span class="igual">não mexeu</span></div>`;
+    if (!v.fala && !v.tela) return `<div class="bl"><span class="n">Bloco ${b.n}</span><span class="antes">${esc(a.fala)}</span><span class="igual">bloco tirado</span></div>`;
+    return `<div class="bl"><span class="n">Bloco ${b.n}${v.quem ? " · " + esc(v.quem) : ""}</span>
+      ${a.fala && a.fala !== v.fala ? `<span class="antes">${esc(a.fala)}</span>` : ""}
+      <span>${esc(v.fala)}</span>${v.tela && v.tela !== a.tela ? `<span class="tela">Tela: ${esc(v.tela)}</span>` : ""}</div>`;
+  }).join("");
+  return `<div class="lado"><h3>Versão ${x}</h3><div class="resp">${esc(c["resp" + x])}</div>
+    <span class="aviso">${muda.length} bloco(s) mudaram</span>${bl}</div>`;
+}
+
+function desenha() {
+  document.getElementById("casos").innerHTML = CASOS.map((c, i) => `
+    <section class="caso${votos[c.caso] ? " votado" : ""}" id="caso-${c.caso}">
+      <div class="cab"><span class="rot">Pedido ${i + 1} de ${CASOS.length} · vídeo #${c.video}</span></div>
+      <p class="pedido">${esc(c.pedido)}</p>
+      <div class="lados">${lado(c, "A")}${lado(c, "B")}</div>
+      <div class="votos" role="group" aria-label="Qual ficou melhor">
+        ${[["A", "A ficou melhor"], ["B", "B ficou melhor"], ["igual", "Tanto faz"]].map(([v, t]) =>
+          `<button type="button" data-caso="${c.caso}" data-v="${v}" aria-pressed="${votos[c.caso] === v}">${t}</button>`).join("")}
+      </div>
+    </section>`).join("");
+  const n = Object.keys(votos).length;
+  const conta = v => Object.values(votos).filter(x => x === v).length;
+  document.getElementById("placar").innerHTML = `<span><b>${n}</b> de ${CASOS.length} respondidos</span>
+    <span>A: <b>${conta("A")}</b></span><span>B: <b>${conta("B")}</b></span><span>Tanto faz: <b>${conta("igual")}</b></span>`;
+}
+
+document.addEventListener("click", async ev => {
+  const b = ev.target.closest("button[data-caso]");
+  if (!b) return;
+  const caso = b.dataset.caso, v = b.dataset.v;
+  votos[caso] = v; desenha();
+  try {
+    const r = await fetch("/api/teste-sonnet/voto", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({chave: caso, escolha: v})});
+    if (r.status === 401) return location.replace("/entrar");
+    if (!r.ok) throw new Error(r.status);
+  } catch (e) { const a = document.getElementById("aviso"); a.hidden = false; a.textContent = "Não consegui guardar a escolha. Tente de novo."; }
+});
+
+fetch("/api/teste-sonnet").then(r => { if (r.status === 401) location.replace("/entrar"); return r.json(); }).then(d => {
+  CASOS = (d.casos || []).map(c => ({...c, caso: c.chave}));
+  CASOS.sort((a, b) => (!!a.voto - !!b.voto) || b.quando.localeCompare(a.quando));
+  CASOS.forEach(c => { if (c.voto) votos[c.chave] = c.voto; });
+  desenha();
+}).catch(() => { const a = document.getElementById("aviso"); a.hidden = false; a.textContent = "Não consegui carregar os casos. Recarregue a página."; });
+</script>
+</body>
+</html>

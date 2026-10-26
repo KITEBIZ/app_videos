@@ -1,0 +1,1647 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Estúdio v2</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Estúdio v2 · prancha aprovada em 16/10/2026: funil como menu no alto, a etapa ou o vídeo no meio, o chat embaixo. */
+:root{--fundo:#0a1748;--cartao:#13235f;--linha:#2a3d86;--texto:#f4f6ff;--apagado:#b8c3ea;--azul:#9cbcff;--amarelo:#ffc933;
+  --rosa:#ff8a95;--verde:#8fe3a8;--chat:#0f1f5c;--resposta:#263c8c;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--fundo);color:var(--texto);font-family:'Source Sans 3',system-ui,sans-serif}
+#app{height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column}
+nav{flex:none;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 8px;border-bottom:1px solid var(--linha);display:flex;flex-direction:column;gap:6px}
+.topo{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.marca{display:flex;align-items:center;gap:8px}
+.marca img{height:30px;width:auto}
+#vivo{font-size:10px;color:#6f7fb8}#vivo.caiu{color:var(--rosa);font-weight:700;font-size:12px}
+#conta{font-size:10px;color:#6f7fb8}#conta.alto{color:var(--rosa);font-weight:700;font-size:12px}
+.funil{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;align-items:center}
+.funil button{border:0;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;clip-path:polygon(0 0,100% 6%,100% 94%,0 100%)}
+.funil button b{font-family:Montserrat,sans-serif;font-weight:900}
+.funil button span{font-size:10px;font-weight:700}
+.funil button[aria-current=page]{background:var(--amarelo)!important;color:var(--fundo)!important}
+main{flex:1;min-height:0;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.rotulo{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amarelo)}
+.cartao{text-decoration:none;color:inherit;background:var(--cartao);border:1px solid var(--linha);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;cursor:pointer;text-align:left;font:inherit}
+.cartao.espera{border:2px solid var(--amarelo)}
+.cartao .tag{font-size:11px;font-weight:700;color:var(--azul);letter-spacing:.06em;text-transform:uppercase}
+.cartao.espera .tag{color:var(--amarelo)}
+.cartao .tag.parou{color:var(--rosa)}
+/* 24/10/2026 (ele: "tá estourando a tela ali no thumbnail"): a capa no tamanho da miniatura da pauta, em 3:4 (o recorte da grade) */
+.cartao.com-capa{position:relative;padding-right:64px;min-height:72px}
+.cartao-capa{position:absolute;right:10px;top:10px;width:44px;aspect-ratio:3/4;object-fit:cover;border-radius:5px;border:1px solid var(--linha)}
+.pub-tag{display:flex;align-items:center;gap:8px;color:var(--amarelo)}
+.pub-mini svg{width:34px;height:auto;display:block}.pub-mini circle{animation:onda 1.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+/* referencia-na-lista (17/10/2026; ele: "um thumbnail da capa do vídeo original [...] e o link nessa lista") */
+.cartao.com-ref{position:relative;padding-right:60px}
+.cartao-ref{position:absolute;right:10px;top:10px;width:40px}
+.cartao-ref img{width:40px;height:50px;object-fit:cover;border-radius:5px;border:1px solid var(--linha);display:block}
+/* 24/10/2026 (ele: "poderia dar um resumo curto do video naquela area, informar qual é o perfil") */
+.canal-tit{margin:14px 2px 4px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--azul)}
+.canal-post{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:10px 12px;border:1px solid var(--linha);border-radius:10px;color:inherit;text-decoration:none;min-height:44px}
+.canal-post .cp-data{font-size:12px;color:#8f9cc9}.canal-post .cp-tit{font-size:14px;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.canal-post .cp-num{font-size:12px;color:var(--azul);white-space:nowrap}
+.cartao-origem{font-size:13px;color:#8f9cc9;line-height:1.35}.cartao-origem .perfil{color:var(--azul);font-weight:700}
+.ver-original{color:var(--azul);font-size:12px;font-weight:700;text-decoration:underline;cursor:pointer;white-space:nowrap}
+.cartao b{font-size:15px}
+.vazio{color:var(--apagado);font-size:14px;padding:8px 2px}
+.cab{display:flex;align-items:center;gap:8px;position:sticky;top:-10px;z-index:4;background:var(--fundo);margin:-10px -12px 0;padding:10px 12px 6px}
+/* 24/10/2026 (ele: "o topo qual roteiro esta e tudo mais deveria ficar fixo"): o título e a linha do roteiro ficam presos */
+.arvore .roteiro-linha{position:sticky;top:var(--cab-h,52px);z-index:3;background:var(--fundo);box-shadow:0 8px 10px -2px var(--fundo)}
+.cab div{display:flex;flex-direction:column;min-width:0}
+.voltar-item{flex:none;align-self:center;min-width:44px;min-height:44px;border-radius:10px;border:1px solid var(--linha);background:transparent;color:var(--texto);font:inherit;font-size:22px;cursor:pointer}
+.cab b{font-size:15px}
+.cab small{font-size:12px;color:var(--apagado)}
+.bloco{display:flex;gap:8px;padding:6px 2px;border-bottom:1px solid #1f3175}
+.bloco.mudou{background:rgba(255,201,51,.16);border-radius:6px;padding:6px 4px;border-bottom-color:transparent}
+.num{flex:none;width:22px;height:22px;border-radius:5px;margin-top:1px;background:var(--amarelo);color:var(--fundo);font-family:Montserrat,sans-serif;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center}
+.bloco.dele .num{background:var(--rosa)}
+.bloco>div:last-child{min-width:0;display:flex;flex-direction:column;gap:1px}
+.bloco .q{font-size:10px;font-weight:700;letter-spacing:.05em;color:var(--azul);text-transform:uppercase}
+.bloco .f{font-size:14px;line-height:1.3}
+.bloco .t{font-size:11px;color:#8f9cc9}
+.bloco .agora{font-size:12px;color:var(--amarelo)}
+.acao{position:sticky;bottom:0;box-shadow:0 -8px 12px var(--fundo);min-height:50px;border-radius:12px;border:0;background:var(--amarelo);color:var(--fundo);font:inherit;font-weight:700;font-size:16px;cursor:pointer;flex:none}
+.acao:disabled{background:#3a4a86;color:var(--apagado)}
+.acao.travado{background:#3a4a86;color:#c9d2f0}
+.acao.travado.mostrando{background:#2a3570;color:var(--amarelo);font-size:14px;font-weight:600;line-height:1.3;padding:8px 12px}
+.passo{font-size:13px;color:var(--azul);padding:4px 2px}
+.passo.parou{color:var(--rosa)}
+section.chat{flex:none;background:var(--chat);border-top:2px solid var(--amarelo);padding:10px 12px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px}
+/* 19/10/2026 (ele: "ali em cima não dá para ler o script e o botão atrapalha"): o botão principal (Aprovar...) sai de
+   cima do roteiro e fica embaixo, depois dos botões do chat; a conversa volta a ocupar menos (34vh) e o aviso do sistema fica em 3 linhas */
+#acao-slot:empty{display:none}
+.acao.direcao{background:#d63a3a;color:#fff}
+.acao.montar{background:transparent;color:var(--amarelo);border:1px solid var(--amarelo);min-height:38px;font-size:14px;font-weight:600}
+#acao-slot .acao.montar{min-height:38px}
+#acao-slot .acao{position:static;box-shadow:none;width:100%;min-height:46px}
+#acao-slot .falta-aprovar{position:static;box-shadow:none;font-size:13px;padding:8px 12px}
+.resp-m.sistema div{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+.resp-m.sistema.aberto div{display:block}
+/* dentro de um vídeo a tela divide: o roteiro com 40% da altura (sempre dá para ler) e a conversa com o resto */
+/* 19/10/2026 (ele: "quando eu entro no vídeo não consigo mais voltar para a lista de vídeos"): o ‹ fica também no topo,
+   sempre à vista dentro de um vídeo (o do cabeçalho do vídeo some quando a prévia toca ou quando a página rola) */
+#voltar-topo{min-width:40px;min-height:40px;margin-right:8px;border-radius:10px;border:1px solid var(--linha);background:transparent;color:var(--texto);font:inherit;font-size:22px;cursor:pointer}
+/* 24/10/2026 (ele: "aquele espaço em branco ali no chat, por que aqui?"): dentro do vídeo o chat ocupava o resto da
+   tela mesmo com uma mensagem só. Agora o meio (roteiro, prévia) fica com o espaço livre, com no mínimo a altura de
+   antes, e o chat cresce só com as mensagens; conversa longa rola dentro dele. */
+#app.no-video:not(.escrevendo):not(.assistindo) main{flex:1 1 0;min-height:40dvh}
+#app.no-video:not(.escrevendo):not(.assistindo) section.chat{flex:0 1 auto;min-height:0}
+#app.no-video:not(.escrevendo):not(.assistindo) #msgs{max-height:none;flex:0 1 auto;min-height:0}
+#msgs{max-height:34vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px}   /* 19/10/2026 (ele: "fica complicado ler a resposta"): era 20vh */
+/* 20/10/2026 (ele, iPhone: "no iphone esta ruim de trabalhar"; a lista ficava com um cartão espremido e a conversa com o
+   resto): na lista, a conversa mostra só a última mensagem em 2 linhas */
+#app:not(.no-video) #msgs>:not(:last-child){display:none}
+#app:not(.no-video) #msgs>:last-child div{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* 19/10/2026 (ele: "a tela tem que ser mobile first"; no iPhone o roteiro ficava com 280 px, 172 escrevendo): dentro de
+   um vídeo o funil some (o ‹ volta); escrevendo, as mensagens antigas se recolhem e o roteiro fica à vista */
+/* 24/10/2026 (ele: "o cabeçalho que é o menu de itens deveria aparecer o tempo todo, mesmo quando estou dentro de um item"):
+   dentro do vídeo o funil volta, numa faixa fina (número e nome numa linha), para o roteiro não perder espaço no celular */
+#app.no-video #funil button{height:34px!important;flex-direction:row;gap:6px;clip-path:none}
+#app.no-video #funil button b{font-size:15px!important}#app.no-video #funil button span{font-size:10px}
+#app.escrevendo #msgs,#app.escrevendo #mais-abaixo{display:none}
+#mais-abaixo{align-self:center;margin-top:-6px;min-height:36px;padding:0 16px;border-radius:18px;border:0;background:var(--amarelo);color:var(--fundo);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.dele-m{align-self:flex-end;max-width:85%;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.dele-m div{font-size:14px;line-height:1.35;background:rgba(255,201,51,.14);border:1px solid rgba(255,201,51,.35);border-radius:10px;padding:8px 10px;white-space:pre-wrap;word-break:break-word}
+.dele-m span{font-size:11px;color:var(--verde)}
+.carimbo{float:right;margin:6px 0 -3px 10px;font-size:11px;line-height:1.2;white-space:nowrap}
+.resp-m .carimbo{color:#a9b6e6}.resp-m div.md .carimbo{display:block;text-align:right;float:none;margin:2px 0 -4px}
+.dele-m span.enviando{color:var(--apagado)}
+.dele-m span.falhou{color:var(--rosa);cursor:pointer;text-decoration:underline}
+.resp-m{display:flex;flex-direction:column;gap:2px}
+.resp-m div{font-size:15px;line-height:1.5;color:#eef1ff;background:var(--resposta);border-radius:10px;padding:10px 12px;white-space:pre-wrap;word-break:break-word}
+.resp-m div.md{white-space:normal}
+.resp-m:not(.sistema)>div.md{border:1px solid #6a86d6}   /* 24/10/2026 (ele: "faz a C") */
+.resp-m div.md p{margin:0 0 8px}
+.resp-m div.md p:last-child,.resp-m div.md ul:last-child{margin-bottom:0}
+.resp-m div.md ul{margin:0 0 8px;padding-left:18px}
+.resp-m div.md li{margin-bottom:6px}
+.resp-m div.md b{color:#fff}
+.resp-m div.md a{color:var(--azul)}
+.resp-m.sistema div{background:transparent;border:1px solid var(--linha);color:var(--apagado)}
+.resp-m span{font-size:11px;color:#8f9cc9}
+.detalhes{font-size:12px;color:#8f9cc9;margin:2px 2px 0}.detalhes summary{cursor:pointer;min-height:28px;display:flex;align-items:center}.detalhes summary::marker{content:''}.detalhes summary::after{content:'▸';margin-left:4px}.detalhes[open] summary::after{content:'▾'}.detalhes p{margin:4px 0 6px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+#trabalho{font-size:12px;color:var(--azul)}
+.passo-ag{color:#8f9cc9;padding-left:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chips button{min-height:36px;padding:0 12px;border-radius:99px;border:1px solid #8a93b8;background:transparent;color:var(--texto);font:inherit;font-size:14px;cursor:pointer}
+.chips button[aria-pressed=true]{background:var(--amarelo);color:var(--fundo);border-color:var(--amarelo);font-weight:700}
+.chips span{font-size:12px;color:var(--apagado)}
+textarea{width:100%;min-height:44px;max-height:22vh;overflow-y:auto;resize:none;border-radius:10px;border:1px solid var(--linha);background:var(--fundo);color:var(--texto);padding:10px 12px;font:inherit;font-size:16px;line-height:1.35}
+.botoes{display:flex;gap:6px;align-items:flex-end}.botoes textarea{flex:1;min-width:0}
+.botoes button{min-height:44px;border-radius:10px;border:1px solid var(--linha);background:transparent;color:var(--texto);font:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0 14px}
+#anexar,#ditar,#enviar{min-width:44px;padding:0 10px;justify-content:center}
+#ditar.gravando{border-color:var(--rosa);color:var(--rosa)}
+#enviar{border:0;background:var(--amarelo);color:var(--fundo);font-weight:700}
+#enviar:disabled{background:#3a4a86;color:var(--apagado)}
+.esp{flex-grow:1}
+:focus-visible{outline:2px solid var(--amarelo);outline-offset:2px}
+[hidden]{display:none!important}
+.opiniao{background:#101f57;border:1px solid #3a4f9c;border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.35;color:#dfe5ff}
+.opiniao summary{cursor:pointer;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--azul)}
+.partes{border-collapse:collapse;margin:6px 0;width:100%}.partes td{padding:3px 6px 3px 0;vertical-align:top;border-bottom:1px solid #22357e}.partes td:first-child{white-space:nowrap;color:var(--azul)}
+.pedir-ajuste:disabled{opacity:.55;cursor:default}.pedir-ajuste:disabled::after{content:' · pedido enviado, esperando a resposta…'}
+.pedir-ajuste{margin-top:8px;width:100%;min-height:40px;border-radius:10px;border:1px solid var(--amarelo);background:transparent;color:var(--amarelo);font:inherit;font-weight:700;cursor:pointer}
+.bolas{display:flex;gap:0}
+.bola{display:inline-block;width:11px;height:11px;border-radius:50%;margin:0 2px;vertical-align:-1px}
+.voz-caixa{background:#101f57;border:1px solid #3a4f9c;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.avisos{margin:0;padding-left:18px;font-size:12px;color:var(--amarelo)}
+.anim-topo{display:flex;gap:10px;align-items:flex-start}
+.progresso{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--azul)}
+.editando{display:flex;flex-direction:column;gap:6px;background:#101f57;border:1px solid #3a4f9c;border-radius:10px;padding:10px 14px}
+/* 24/10/2026 (ele: "o quadro de andamento pode ser menor, esta ocupando uma area muito grande"): uma linha, barra fina */
+.editando .ed-linha{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.editando .ed-tit{font-size:14px;font-weight:800}
+.editando .ed-pct{font-size:20px;line-height:1;color:var(--amarelo);font-variant-numeric:tabular-nums}
+.editando .barra-prog{width:100%;height:6px;border-radius:3px}
+.editando .ed-sub{font-size:11px;color:var(--azul);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.barra-prog{height:8px;border-radius:4px;background:#22357e;overflow:hidden}.barra-prog div{height:100%;background:var(--amarelo);transition:width .6s}
+/* 16/10/2026 (ele: "quando clica para dar play ele aumenta ali dentro da área para poder ver"): tocando, a prévia ocupa a
+   área do vídeo e o chat fica só com a caixa; pausou, volta */
+#app.assistindo .anim-mud, #app.assistindo .opiniao, #app.assistindo .rotulo, #app.assistindo .bloco, #app.assistindo .cab,
+#app.assistindo .capas, #app.assistindo #msgs, #app.assistindo #trabalho { display: none !important; }
+#app.assistindo .anim-previa { width: 100%; }
+/* 24/10/2026 (ele: "quando estou em um vídeo na etapa animação, não tem mais o botão volta para a lista"): assistindo, a
+   linha do título some, então o ‹ volta para a linha do logo */
+#app.assistindo #voltar-topo { display: inline-block !important; }
+#app.assistindo .anim-previa iframe, #app.assistindo .anim-previa .previa-mp4 { width: auto; height: calc(100dvh - 345px); aspect-ratio: 1080 / 1920; max-width: 100%; }
+.anim-previa .previa-mp4{width:200px;height:356px;border:1px solid var(--linha);border-radius:10px;background:#05081a;object-fit:contain}
+.previa-gerando{font-size:11px;color:var(--amarelo)}
+/* 24/10/2026 (ele: "poderia diminuir o tamanho do preview para continuar aparecendo o botão publicar"): assistindo, o
+   botão da etapa (Aprovar o vídeo, Publicar) fica à vista embaixo da prévia; a legenda do post sai da frente */
+#app.assistindo .anim-previa > a, #app.assistindo #voltar-roteiro, #app.assistindo .legenda-post { display: none !important; }
+/* 20/10/2026 ("aprovo o plano previa-de-trabalho"; ele: "quando dou play ou pause a tela muda"): aberta grande, a prévia fica
+   grande tocando e pausada até o ✕; embaixo, o segundo grande, ±1 s, ±5 s e "pedir neste segundo" (escreve na caixa) */
+.prev-ctl{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center}
+.prev-ctl button{min-width:34px;min-height:34px;padding:0 6px;border-radius:999px;border:0;background:var(--amarelo);color:#0a1748;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.prev-ctl #prev-t{min-width:62px;text-align:center;font-size:18px;color:var(--amarelo);font-variant-numeric:tabular-nums}
+.prev-ctl #pedir-seg{background:transparent;color:var(--amarelo);border:1px solid var(--amarelo)}
+.prev-ctl #fechar-previa{display:none;background:transparent;color:var(--texto);border:1px solid #8a93b8}
+#app.assistindo .prev-ctl #fechar-previa{display:inline-block}
+.anim-previa{flex:none;width:200px;display:flex;flex-direction:column;gap:4px;align-items:center}
+.anim-previa iframe{width:200px;height:356px;border:1px solid var(--linha);border-radius:10px;background:#05081a}
+.anim-previa a{font-size:11px;color:var(--azul)}
+.anim-mud{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.anim-mud .rotulo{font-size:11px}
+.anim-mud .t{font-size:12px;color:var(--apagado)}
+.voltar-anim{align-self:flex-start;min-height:40px;padding:0 12px;border-radius:10px;border:1px solid #8a93b8;background:transparent;color:var(--texto);font:inherit;font-size:14px;cursor:pointer}
+/* 16/10/2026 ("aprovo o plano v2-capa"): as duas opções de capa lado a lado, cada uma inteira e no recorte 3:4 da grade */
+.capas{background:#101f57;border:1px solid #3a4f9c;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.capas-op{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.capa-op{display:flex;flex-direction:column;gap:4px;min-width:0;border:1px solid transparent;border-radius:8px;padding:4px}
+.capa-op.escolhida{border-color:var(--amarelo)}
+.capa-op img{width:100%;border-radius:4px;border:1px solid var(--linha);display:block}
+.capa-op details summary{font-size:11px;color:var(--azul);cursor:pointer}
+.anim-mud .capas{padding:6px}
+.anim-mud .capas-op{gap:4px}.anim-mud .capa-op{padding:2px}
+.capa-op b{font-size:11px;line-height:1.25;overflow-wrap:anywhere}
+.capa-op .t{font-size:11px;color:var(--apagado);line-height:1.3}
+.capa-op button{min-height:40px;font-size:12px!important;padding:0 4px;border-radius:10px;border:1px solid var(--amarelo);background:transparent;color:var(--amarelo);font:inherit;font-weight:700;cursor:pointer}
+.capa-op .ok{font-size:11px;color:var(--amarelo);font-weight:700;min-height:40px;display:flex;align-items:center}
+/* 16/10/2026 ("aprovo o plano botao-excluir"): discreto no cabeçalho; dois toques, como o Publicar */
+#regras-tela{position:fixed;inset:0;z-index:50;background:var(--fundo);overflow-y:auto;padding:16px 16px 40px;color:var(--texto,#e8ecff)}
+#regras-tela .rg-topo{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+#regras-tela .rg-topo b{font-size:20px;flex:1}
+#regras-tela .rg-x{min-width:40px;min-height:40px;border-radius:10px;border:1px solid var(--linha);background:transparent;color:inherit;font:inherit;font-size:18px;cursor:pointer}
+#regras-tela .rg-card{display:block;width:100%;text-align:left;margin:0 0 10px;padding:12px 14px;border-radius:12px;border:1px solid var(--linha);background:rgba(255,255,255,.04);color:inherit;font:inherit;cursor:pointer}
+#regras-tela .rg-card span{display:block;font-size:13px;opacity:.75;margin-top:3px}
+#regras-tela .rg-sec{font-size:13px;letter-spacing:.08em;color:var(--amarelo);font-weight:800;margin:18px 0 8px}
+#regras-tela .rg-dec li{margin:0 0 8px}
+#regras-tela textarea{width:100%;min-height:90px;border-radius:12px;border:1px solid var(--linha);background:rgba(0,0,0,.25);color:inherit;font:inherit;font-size:16px;padding:10px}
+#regras-tela .rg-bt{min-height:46px;border-radius:12px;border:0;padding:0 16px;margin:8px 8px 0 0;background:var(--amarelo);color:var(--fundo);font:inherit;font-weight:700;cursor:pointer}
+#regras-tela .rg-bt.leve{background:transparent;color:var(--amarelo);border:1px solid var(--amarelo)}
+#regras-tela .rg-bt:disabled{opacity:.5}
+#regras-tela .rg-prop{border:1px solid var(--amarelo);border-radius:12px;padding:12px;margin:10px 0}
+#regras-tela .rg-sai{text-decoration:line-through;opacity:.6;white-space:pre-wrap;font-size:14px}
+#regras-tela .rg-entra{color:var(--verde,#6fe0a0);white-space:pre-wrap;font-size:14px;margin:4px 0 10px}
+#regras-tela .rg-texto{margin-top:16px;border-top:1px solid var(--linha);padding-top:10px}
+#regras-tela .rg-aviso{color:var(--rosa,#ff8fa3);margin:8px 0}
+.excluir-topo{flex:none;min-width:36px;min-height:36px;padding:0 8px;border-radius:10px;border:1px solid var(--linha);background:transparent;color:var(--azul);font:inherit;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.excluir-topo.confirma{border-color:var(--rosa);background:var(--rosa);color:var(--fundo);font-weight:700}
+.pub-feito{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.capa-grande{background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:center;color:var(--azul);font:inherit;font-size:13px;text-decoration:underline}
+.capa-grande img{width:220px;aspect-ratio:9/16;object-fit:cover;border-radius:12px;border:2px solid var(--verde);display:block}
+.pub-info{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1}
+.pub-ok{color:var(--verde);font-size:22px}
+.pub-link{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--amarelo);color:var(--amarelo);text-decoration:none;font-weight:700;align-self:flex-start}
+.numeros{background:#101f57;border:1px solid #3a4f9c;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.num-grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.num-grade div{display:flex;flex-direction:column;background:#0a1748;border-radius:10px;padding:10px}
+.num-grade b{font-size:22px;color:var(--amarelo);font-variant-numeric:tabular-nums}.num-grade span{font-size:12px;color:var(--azul)}
+.num-pe{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.capa-so{display:grid;grid-template-columns:72px 1fr;gap:4px 8px;align-items:center}.capa-so .rotulo{grid-column:1/-1}
+.capa-so img{width:72px;border-radius:4px;border:1px solid var(--amarelo);display:block}.capa-so b{font-size:12px;line-height:1.25}
+.capa-so .link{grid-column:2}
+.link{background:none;border:0;padding:4px 0;color:var(--azul);text-decoration:underline;font:inherit;font-size:13px;cursor:pointer;justify-self:start;min-height:32px}
+.legenda-post{background:#101f57;border:1px solid #3a4f9c;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.lp-cab{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.lp-bom{color:var(--verde);font-size:12px;font-weight:700}.lp-ruim{color:var(--rosa);font-size:12px;font-weight:700}
+.lp-cab .link{margin-left:auto}
+.lp-texto{margin:0;white-space:pre-wrap;font:13px/1.45 inherit;font-family:inherit;color:#dfe5ff;max-height:260px;overflow:auto}
+/* 16/10 (ele: "onde fica o botão para aprovar o vídeo?"): o que falta fica fixo no rodapé, onde o botão vai aparecer */
+.final-v{width:200px;height:356px;border:1px solid var(--linha);border-radius:10px;background:#05081a;object-fit:contain}
+.publicando{display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center;background:#101f57;border:1px solid #3a4f9c;border-radius:12px;padding:24px 16px}
+.pub-logo svg{width:160px;height:auto;display:block}
+.pub-logo circle{animation:onda 1.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes onda{0%,100%{opacity:.25;transform:scale(.7)}40%{opacity:1;transform:scale(1.15)}}
+.pub-tit{font-size:22px}
+.pub-passos{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.pub-passos li.feito{color:var(--verde)}.pub-passos li.feito::before{content:"✓ "}
+.pub-passos li.agora{color:var(--amarelo);font-weight:700}.pub-passos li.agora::after{content:" …"}
+.publicado{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#103d2a;border:1px solid var(--verde);border-radius:12px;padding:12px 14px}
+.publicado b{color:var(--verde);font-size:18px}.publicado a{color:var(--texto)}
+.acao.confirma{background:var(--rosa);color:var(--fundo)}
+.voz-problema{position:sticky;bottom:0;flex:none;display:flex;flex-direction:column;gap:8px;background:var(--amarelo);color:var(--fundo);border-radius:12px;padding:12px 14px;box-shadow:0 -8px 12px var(--fundo);font-size:14px}
+.vp-botoes{display:flex;gap:8px;flex-wrap:wrap}
+.vp-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px;max-height:30vh;overflow-y:auto}
+.vp-lista li{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.vp-ouvir{flex:none;min-height:36px;border-radius:99px;border:2px solid var(--fundo);background:transparent;color:var(--fundo);font:inherit;font-weight:800;font-size:13px;padding:0 12px;cursor:pointer;white-space:nowrap}
+.vp-botoes button{min-height:44px;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;padding:0 14px;flex:1 1 auto}
+#consertar-voz{background:transparent;border:2px solid var(--fundo);color:var(--fundo)}
+#aprovar-voz-assim{background:var(--fundo);border:0;color:var(--amarelo)}
+.falta-aprovar{position:sticky;bottom:0;flex:none;font-size:14px;font-weight:700;color:var(--fundo);background:#9cbcff;border-radius:12px;padding:12px 14px;box-shadow:0 -8px 12px var(--fundo)}
+.opiniao p{margin:6px 0 2px}.opiniao ul{margin:2px 0 4px;padding-left:18px}.opiniao li{margin:2px 0}
+/* ---- 22/10/2026, "aprovo o plano tela-do-roteiro" ---------------------------------------------------------------
+   topo numa linha; no vídeo, o roteiro em árvore (uma linha por parte e por bloco) e o chat sempre à vista embaixo; no
+   computador, duas colunas (árvore | chat) com a largura da tela */
+.topo-dir{display:flex;align-items:center;gap:8px;font-size:12px;white-space:nowrap;min-width:0}
+#conta{font-size:11px}#conta.alto{font-size:11px}
+#vivo{width:9px;height:9px;border-radius:50%;background:var(--verde);font-size:0;flex:none;cursor:pointer}
+#vivo.mostra{width:auto;height:auto;background:transparent;font-size:10px;color:#6f7fb8}
+#vivo.caiu{width:auto;height:auto;border-radius:6px;background:transparent;font-size:12px;color:var(--rosa);font-weight:700}
+@media (max-width:430px){.topo{gap:4px}.topo-dir{gap:6px}#conta{font-size:10px}#voltar-topo{margin-right:2px;min-width:36px}.marca{gap:4px}.marca img{height:22px}}
+#conta{min-width:0;overflow:hidden;text-overflow:ellipsis}.topo-dir{flex-shrink:1}.marca{flex:none}
+.marca img{height:26px}
+#app.no-video nav{padding-bottom:6px}
+#app.com-arvore .cab b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#app.com-arvore .cab.inteiro b{white-space:normal}
+.arvore{display:flex;flex-direction:column}
+.arvore summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:40px;padding:2px 0;min-width:0}
+.arvore summary::-webkit-details-marker{display:none}
+.no-abas{display:flex;gap:6px;flex:none}
+.no-abas::-webkit-scrollbar{display:none}
+.no-abas button{flex:none;min-height:32px;padding:0 10px;border-radius:99px;border:1px solid var(--linha);background:transparent;color:var(--texto);font:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:2px;white-space:nowrap}
+.no-abas button[aria-selected=true]{background:rgba(255,201,51,.14);color:var(--amarelo);border:2px solid var(--amarelo)}
+.no-abas .bola{width:9px;height:9px;margin:0 1px}
+.no-abas button.alerta{border-color:var(--rosa)}
+.painel{background:#101f57;border:1px solid #3a4f9c;border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.4;color:#dfe5ff;max-height:21dvh;overflow-y:auto;margin-bottom:6px}
+.painel p{margin:0 0 6px}.painel .voz-caixa{background:transparent;border:0;padding:0}
+.no-tit{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amarelo);flex:none}
+.no-info{font-size:12px;color:var(--apagado);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+.roteiro-linha{display:flex;align-items:center;gap:8px;min-height:36px}
+.cartao-pedido.uma-linha .cp-agora small{display:block;color:var(--apagado);font-size:11px;margin-top:2px}
+.abrir-todos{flex:none;min-width:32px;min-height:32px;padding:0;border-radius:8px;border:1px solid var(--linha);background:transparent;color:var(--azul);font:inherit;font-size:16px;cursor:pointer}
+.blocos-arvore{display:flex;flex-direction:column;padding-left:4px}
+.bloco-no{border-top:1px solid #1a2b6c}
+.bloco-no>summary{gap:6px;min-height:36px;padding:0}
+.bloco-no .num{margin-top:0}
+.bloco-no.dele .num{background:var(--rosa)}
+.bloco-no.mudou>summary{background:rgba(255,201,51,.16);border-radius:6px}
+.b-nome{flex:none;max-width:42%;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--azul);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.b-fala{flex:1;min-width:0;font-size:13px;color:var(--apagado);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bloco-no[open] .b-fala{visibility:hidden}
+.b-corpo{display:flex;flex-direction:column;gap:2px;padding:0 0 8px 28px}
+.b-corpo .f{font-size:14px;line-height:1.3}.b-corpo .t{font-size:11px;color:#8f9cc9}.b-corpo .agora{font-size:12px;color:var(--amarelo)}
+table.checagem{border-collapse:collapse;width:100%;font-size:12px}
+table.checagem th,table.checagem td{border-bottom:1px solid #22357e;padding:4px 6px 4px 0;vertical-align:top;text-align:left}
+table.checagem th{color:var(--azul)}table.checagem a{color:var(--azul);overflow-wrap:anywhere}
+/* celular: o roteiro com metade da altura (a árvore cabe), o chat com o resto e a caixa sempre à vista */
+#app.com-arvore:not(.escrevendo):not(.assistindo) main{flex:1 1 0;min-height:var(--meio-alt,44dvh)}
+/* tela-do-roteiro.6 (22/10/2026, "aprovo a alça do chat"; ele: "o chat fica ruim de ver"): a alça entre o roteiro e o
+   chat, que ele arrasta; a posição fica guardada neste aparelho. Começa em 44% (antes 54%: só 85 px de mensagens) */
+#alca{display:none}
+#app.com-arvore:not(.escrevendo):not(.assistindo) #alca{display:flex;flex:none;height:22px;align-items:center;justify-content:center;touch-action:none;cursor:row-resize;margin-bottom:-6px;position:relative;z-index:2}
+#alca span{width:48px;height:5px;border-radius:3px;background:var(--azul);opacity:.7}
+#alca.arrastando span{background:var(--amarelo);opacity:1}
+/* chat-trabalhando (22/10/2026): o cartão do pedido em andamento */
+.cartao-pedido{display:flex;flex-direction:column;gap:4px;background:rgba(255,201,51,.10);border:1px solid rgba(255,201,51,.35);border-radius:10px;padding:6px 10px}
+.cp-pedido{display:flex;align-items:center;gap:6px;background:transparent;border:0;color:var(--texto);font:inherit;font-size:13px;cursor:pointer;padding:0;text-align:left;min-height:28px;min-width:0}
+.cp-quem{flex:none;color:var(--verde);font-size:11px}
+.cp-texto{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cartao-pedido.aberto .cp-texto{white-space:pre-wrap}
+.cp-seta{flex:none;color:var(--azul)}
+.cp-agora{font-size:12px;color:var(--azul);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fa-tit{margin-right:2px}.fa-pil{display:inline-block;background:rgba(10,23,72,.12);border-radius:99px;padding:1px 8px;margin:2px 2px 0 0;font-weight:700}
+.fa-avisos{margin-top:4px;font-weight:400}.fa-avisos summary{cursor:pointer;text-decoration:underline}.fa-avisos ul{margin:4px 0 0;padding-left:18px}
+/* .3: a mensagem do sistema cortada em 3 linhas diz que abre */
+.resp-m.sistema.cortada>span::after{content:' · ver tudo ▾';color:var(--azul);cursor:pointer}
+.resp-m.sistema.cortada.aberto>span::after{content:' · fechar ▴'}
+@media (min-width:1000px){
+  #app.com-arvore{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(380px,40%);grid-template-rows:auto minmax(0,1fr)}
+  #app.com-arvore nav{grid-column:1 / -1}
+  #app.com-arvore main,#app.com-arvore:not(.escrevendo):not(.assistindo) main{grid-column:1;grid-row:2;flex:none;min-height:0;padding:10px 20px}
+  #app.com-arvore section.chat,#app.com-arvore:not(.escrevendo):not(.assistindo) section.chat{grid-column:2;grid-row:2;min-height:0;border-top:0;border-left:2px solid var(--amarelo)}
+  #app.com-arvore #msgs{max-height:none;flex:1 1 0;min-height:60px}
+  #app.com-arvore.escrevendo #msgs{display:flex}
+  #app.com-arvore #alca{display:none!important}
+  #app.com-arvore .painel{max-height:46dvh}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <nav aria-label="Funil">
+    <div class="topo">
+      <div class="marca"><button type="button" id="voltar-topo" data-voltar aria-label="Voltar à lista de vídeos" hidden>‹</button><img src="/logo.png" alt="Instituto BR360"></div>
+      <!-- 22/10/2026 ("aprovo o plano tela-do-roteiro"; ele: "no topo tem duas linhas que podem vir para uma única linha"):
+           Claude numa linha; o "atualizado às" virou a bolinha (a hora aparece ao tocar) -->
+      <span class="topo-dir"><button type="button" id="regras-abrir" class="excluir-topo" aria-label="Regras do estúdio" title="Regras do estúdio">Regras</button><button type="button" id="excluir" class="excluir-topo" aria-label="Excluir este vídeo" title="Excluir este vídeo" hidden><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button><span id="conta"></span><span id="vivo" role="status" title=""></span></span>
+    </div>
+    <div class="funil" id="funil"></div>
+  </nav>
+  <main id="meio"></main>
+  <div id="alca" role="separator" aria-orientation="horizontal" aria-label="Arraste para dividir o roteiro e a conversa"><span></span></div>
+  <section class="chat" aria-label="Chat">
+    <div id="msgs"></div>
+    <button type="button" id="mais-abaixo" hidden>↓ nova mensagem</button>
+    <div id="trabalho"></div>
+    <div class="chips" id="chips" hidden>
+      <!-- 19/10/2026 (ele: "pode deletar o Analisar a fala e deixar só o Fomos conferir"): o Fomos conferir É a análise da
+           fala no formato novo; com link, ele já vem escolhido -->
+      <button type="button" data-tipo="igual" aria-pressed="false">Fazer igual</button>
+      <button type="button" data-tipo="ideia" aria-pressed="false">Nova pauta com esta ideia</button>
+      <button type="button" id="molde-conferir" aria-pressed="false" hidden>Formato Fomos conferir</button>
+      <button type="button" id="formato-analise" aria-pressed="false" hidden>Análise</button>
+      <span id="dica-tipo">escolha o tipo da pauta</span>
+    </div>
+    <label for="caixa" style="position:absolute;left:-9999px">Mensagem</label>
+    <!-- 24/10/2026 (ele: "pode fazer os três"): caixa e botões numa linha só, como no WhatsApp (antes a caixa ocupava uma
+         linha e os botões outra) -->
+    <div class="botoes">
+      <button type="button" id="anexar" aria-label="Anexar arquivo"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#c9d3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5l-8.5 8.5a6 6 0 01-8.5-8.5l9-9a4 4 0 015.7 5.7l-9 9a2 2 0 01-2.8-2.8l8.3-8.3"/></svg></button>
+      <input type="file" id="arquivo" hidden>
+      <textarea id="caixa" rows="1" placeholder="Cole o link da pauta ou escreva a ideia…"></textarea>
+      <button type="button" id="ditar"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg><span></span></button>
+      <button type="button" id="enviar" aria-label="Enviar" disabled><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M3.4 20.4 21 12 3.4 3.6l-.01 6.53L15 12 3.39 13.87z"/></svg></button>
+    </div>
+    <!-- 19/10/2026 (ele: "o botão amarelo poderia aparecer na parte de baixo, na área de botões") -->
+    <div id="acao-slot"></div>
+  </section>
+</div>
+<!-- 26/10/2026 (ele: "talvez eu tenha que poder ver esse caderno de regras caso queira mudar algo"): a tela Regras -->
+<div id="regras-tela" role="dialog" aria-label="Regras do estúdio" hidden></div>
+<script src="/morphdom.min.js"></script>
+<script>
+const ETAPAS = ['Pauta', 'Roteiro e voz', 'Animação', 'Aguardando', 'Publicado'];
+const FORMATO = {checagem: 'Checagem', analise: 'Análise'};      // 16/10/2026, "aprovo o plano roteirista-formato"
+const CURTO = {'Pauta': 'PAUTA', 'Roteiro e voz': 'ROT. E VOZ', 'Animação': 'ANIMAÇÃO', 'Aguardando': 'PUBLICAÇÃO', 'Publicado': 'PUBLIC.'};
+const SIMB_MINI = (() => {
+  const P = [[141,287,'#ff4d5e'],[81,287,'#ff4d5e'],[21,287,'#ff4d5e'],[37,195,'#ff4d5e'],[102,196,'#ff4d5e'],[170,199,'#ff4d5e'],
+    [84,113,'#9cbcff'],[160,123,'#9cbcff'],[156,53,'#9cbcff'],[245,144,'#9cbcff'],[244,82,'#9cbcff'],[244,21,'#9cbcff'],
+    [338,21,'#ffc933'],[338,82,'#ffc933'],[337,144,'#ffc933'],[426,53,'#ffc933'],[422,123,'#ffc933'],[498,113,'#ffc933'],
+    [412,199,'#ffc933'],[480,196,'#ffc933'],[545,195,'#ffc933'],[441,287,'#ffc933'],[501,287,'#ffc933'],[561,287,'#ffc933']];
+  const ordem = P.map((p, i) => [p[0], i]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+  return `<svg viewBox="-10 -10 602 330">${P.map(([x, y, c], i) => `<circle cx="${x}" cy="${y}" r="21" fill="${c}" style="animation-delay:${(ordem.indexOf(i) * .05).toFixed(2)}s"/>`).join('')}</svg>`;
+})();
+// o corte do trecho (o mesmo do estudio.py): (início-fim) ou (início-fim material/<código>), 17/10/2026 agente-baixa
+const CORTE_RE = /\s*\(\s*(\d+)[.,](\d+)\s*-\s*(\d+)[.,](\d+)(?:\s+(material\/[\w.-]+))?\s*\)\s*$/;
+const NOME_ETAPA = {'Aguardando': 'Publicação'};      // 16/10/2026, "aprovo o plano v2-aprovar-video": aprovado, esperando publicar
+const CORES = ['#2f54d6', '#2f54d6', '#3d6be0', '#22357e', '#6f95f0'], ALTURAS = [58, 50, 44, 38, 34];
+const TIPO = {analisar: 'Analisar a fala', igual: 'Fazer igual', ideia: 'Ideia escrita'};
+const $ = s => document.querySelector(s);
+let ultimaQtd = 0;
+let funil = null, item = null, tipoEscolhido = null;
+let formatoAnalise = false;     // 19/10/2026: o botão Análise (história do caso, sem placar)
+let moldeConferir = true;       // 19/10/2026 (ele: "no app não tem a opção para a nova versão"): a pauta já nasce no formato Fomos conferir;
+                                // ligado de saída desde 19/10 (ele, depois do #301: "já pode colocar o modelo ali para quando eu colar o novo link"); toque no botão desliga
+let envios = [];
+let ultimoChat = '', chatDe = null, ultimoMeio = '';
+let opiniaoAberta = false, verCapas = false, confirmaAte = 0, excluirAte = 0;
+// tela-do-roteiro (22/10/2026, "aprovo o plano tela-do-roteiro"): cada linha da árvore lembra se está aberta ("<num>:<nó>")
+const nosAbertos = {};
+let pedidoAberto = false;       // chat-trabalhando: o pedido inteiro no cartão
+let tituloInteiro = false;
+const aberto = (chave, padrao) => (nosAbertos[`${item.ficha.num}:${chave}`] ?? padrao) ? 'open' : '';
+let verNumeros = false, numeros = {}, buscandoNumeros = false;   // a tela do publicado (16/10/2026, v2-publicado)   // confirmaAte: o 1º toque em Publicar vale 5 s   // verCapas: "trocar capa" abre as opções de novo          // mensagens que este celular mandou e ainda não estão no chat do servidor
+const estado = () => { const m = location.hash.match(/^#\/item\/(\d+)/); return m ? {item: +m[1]} : {etapa: decodeURIComponent((location.hash.match(/^#\/etapa\/(.+)/) || [])[1] || 'Pauta')}; };
+const mmss = s => `${(+s / 60) | 0}:${String(+s % 60).padStart(2, '0')}`;
+const hora = iso => iso ? iso.slice(11, 16) : '';
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const guardar = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (e) {} };
+const lerGuardado = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
+const novoId = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(16).slice(2));
+const ha = iso => { const s = Math.max(0, (Date.now() - new Date(iso)) / 1000); return s < 60 ? `${s | 0} s` : s < 3600 ? `${s / 60 | 0} min` : s < 86400 ? `${s / 3600 | 0} h` : `${s / 86400 | 0} d`; };
+
+// 25/10/2026 (medido no ar: ~3 MB por minuto por aba): a última resposta de cada consulta e a impressão dela (ETag); a
+// tela pergunta "mudou?" (If-None-Match) e, com "304, nada mudou", usa a guardada, sem baixar de novo
+const guardadas = new Map();
+async function api(caminho, opcoes = {}, tempo = 15000) {
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), tempo);
+  const consulta = !opcoes.method || opcoes.method === 'GET', antes = consulta && guardadas.get(caminho);
+  try {
+    const r = await fetch(caminho, {...opcoes, signal: ctl.signal, cache: 'no-store',
+      headers: {...(opcoes.headers || {}), ...(antes ? {'If-None-Match': antes.tag} : {})}});
+    if (r.status === 304 && antes) return antes.j;
+    if (r.status === 401) location.replace('/entrar');      // sessão do Face ID venceu (20/10/2026, entrada.py)
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.erro || `erro ${r.status}`);
+    const tag = r.headers.get('ETag');
+    if (consulta && tag) guardadas.set(caminho, {tag, j});
+    return j;
+  } finally { clearTimeout(t); }
+}
+
+// 16/10/2026 (ele: "fica piscando"): menu, contadores e passos só são redesenhados quando o conteúdo muda
+function poe(el, html) { if (el && el.__html !== html) { el.innerHTML = html; el.__html = html; } }
+function texto(el, t) { if (el && el.textContent !== t) el.textContent = t; }
+
+function desenhaFunil() {
+  const e = estado();
+  $('#app').classList.toggle('no-video', !!e.item); const atual = e.item && item ? item.ficha.etapa : e.etapa;
+  poe($('#funil'), ETAPAS.map((n, i) => `<button type="button" data-etapa="${esc(n)}" ${n === atual ? 'aria-current="page"' : ''}
+    style="height:${ALTURAS[i]}px;background:${CORES[i]};${i === 4 ? 'clip-path:none;color:#0a1748' : ''}">
+    <b style="font-size:${20 - i}px">${funil ? funil.contagem[n] : '·'}</b><span>${CURTO[n]}</span></button>`).join(''));
+  // 19/10/2026 (ele: "não posso gastar todo meu limite com o opus"): uso da conta Claude, do último pedido ao agente
+  const j = funil && funil.limite && funil.limite.unifiedWindows;
+  if (j) {
+    const cinco = j.five_hour || {}, sete = j.seven_day || {};
+    const pc = x => Math.round((x.utilization || 0) * 100);
+    const alto = pc(cinco) >= 80 || pc(sete) >= 80;
+    const volta = x => x.resetsAt ? new Date(x.resetsAt * 1000).toTimeString().slice(0, 5) : '';
+    $('#conta').className = alto ? 'alto' : '';
+    $('#conta').title = `conta Claude: ${pc(cinco)}% em 5 h · ${pc(sete)}% na semana`;
+    texto($('#conta'), `Claude ${pc(cinco)}%·${pc(sete)}%` + (alto ? ` · volta ${volta(pc(cinco) >= 80 ? cinco : sete)}` : ''));
+  } else texto($('#conta'), '');
+}
+
+function durBloco(n) {
+  const vz = item && item.voz; if (!vz) return '';
+  const b = (vz.blocos || []).find(x => x.n === n);
+  return b ? ` · ${Math.round(b.fim - b.ini)} s` : '';
+}
+
+function cartao(i) {
+  const parou = i.passo === 'parou', espera = !!i.esperando;
+  const tag = i.passo === 'publicando' ? '' : espera ? `ESPERANDO VOCÊ · ${i.esperando}` : parou ? 'PAROU' : i.passo === 'roteiro pronto' ? ''
+    : `${i.passo}${i.progresso != null ? ' · ' + i.progresso + '%' : ''} · ${ha(i.passo_desde)}`;
+  const pub = i.passo === 'publicando', o = i.origem || {};
+  // a capa do original (referencia-na-lista): só sem a nossa capa (na Pauta ainda não há); ideia escrita não tem
+  // 24/10/2026 (ele: "deixar do mesmo tamanho do item"): a miniatura pequena ao lado e o "ver original" na linha do perfil
+  const ref = !i.tem_capa && i.link && i.tem_ref ? `<span class="cartao-ref"><img src="/item/${i.num}/referencia/capa-original.jpg?v=${i.tem_ref}" alt=""></span>` : '';
+  const original = !i.tem_capa && i.link ? `${(i.origem || {}).perfil ? ' · ' : ''}<span class="ver-original" role="link" data-original="${esc(i.link)}">ver original ↗</span>` : '';
+  return `<button type="button" class="cartao${espera ? ' espera' : ''}${i.tem_capa ? ' com-capa' : ''}${ref ? ' com-ref' : ''}" data-item="${i.num}">
+    ${i.tem_capa ? `<img class="cartao-capa" src="/item/${i.num}/animacao/capa.jpg" alt="">` : ''}${ref}
+    ${pub ? `<span class="tag pub-tag"><span class="pub-mini">${SIMB_MINI}</span>PUBLICANDO…</span>` : ''}
+    ${tag ? `<span class="tag${parou ? ' parou' : ''}">${esc(tag)}</span>` : ''}
+    <b>#${i.num} · ${esc(i.titulo || (i.link ? 'pauta nova · ' + i.link.replace(/^https?:\/\/(www\.)?/, '').split('/')[0] : 'pauta nova'))}</b>
+    ${o.perfil || o.resumo || original ? `<span class="cartao-origem">${o.perfil ? `<span class="perfil">@${esc(o.perfil)}</span>${o.quem && o.quem !== o.perfil ? ' · ' + esc(o.quem) : ''}` : ''}${original}${o.resumo ? `<br>${esc(o.resumo)}` : ''}</span>` : ''}</button>`;
+}
+
+function desenhaMeio() {
+  if (dedoNaTela) { redesenharDepois = true; return; }
+  const e = estado();
+  // 25/10/2026 (#382, "Não é segue a...": a voz nova ficou pronta no meio do ditado, a tela trocou o player e o iPhone
+  // desligou o microfone; ele falou mais 5 s para um microfone mudo): enquanto ele dita, o vídeo da tela não se redesenha;
+  // o ditado acabou, redesenha
+  if (gravador && gravador.state === 'recording' && e.item === ditadoNoItem) return;
+  $('#voltar-topo').hidden = true;      // o ‹ agora fica na linha do título do vídeo (24/10/2026)
+  // 24/10/2026 (ele: "faz a opção 1"): a lixeira fica na linha do logo, dentro do vídeo; o 2º toque continua confirmando
+  if (!excluirAte) $('#excluir').hidden = !(e.item && item && item.pode_excluir);
+  if (!e.item || !item) $('#app').classList.remove('com-arvore');
+  if (!e.item) {
+    // 26/10/2026 (ele, print do #408: "esta trabalhando no item 408 mas ele não aparece na lista"): o que o estúdio está
+    // fazendo agora fica no topo, depois o que espera ele; antes o trabalhando ia para baixo de 75 pautas esperando
+    const ordem = i => i.esperando ? 1 : (i.passo === 'parou' || i.passo === 'roteiro pronto') ? 2 : 0;
+    const lista = funil ? funil.itens.filter(i => i.etapa === e.etapa).sort((a, b) => (ordem(a) - ordem(b)) || b.num - a.num) : [];
+    // 24/10/2026 (ele: "clico em pauta que tem zero item continua mostrando o item de Rot. e Voz"): a etapa entra na
+    // conta do "mudou?"; a lista vazia era '' e batia com o '' que outras telas deixam, e o cartão da etapa de antes ficava
+    let h = lista.length ? lista.map(cartao).join('') : `<div class="vazio">Nenhum vídeo nesta etapa.</div>`;
+    // 24/10/2026 (ele: "ali no publicado deveria listar todos os vídeos publicados no canal"): os posts do canal que a
+    // memória da página leu, depois dos vídeos feitos no app; o toque abre o post no Instagram
+    const cn = funil && funil.canal;
+    if (e.etapa === 'Publicado' && cn && cn.posts.length) {
+      const num = v => v == null ? '' : v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 0 : 1).replace('.', ',') + ' mil' : String(v);
+      h += `<div class="canal-tit">No canal · ${cn.posts.length} post${cn.posts.length === 1 ? '' : 's'}${cn.medido ? ` · números de ${esc(cn.medido.slice(8, 10) + '/' + cn.medido.slice(5, 7) + ' ' + cn.medido.slice(11, 16))}` : ''}</div>`
+        + cn.posts.map(p => `<a class="canal-post" href="${esc(p.link)}" target="_blank" rel="noopener">
+            <span class="cp-data">${esc((p.postado || '').slice(8, 10) + '/' + (p.postado || '').slice(5, 7))}</span>
+            <span class="cp-tit">${esc(p.titulo || 'post')}</span>
+            <span class="cp-num">${p.views != null ? `👁 ${num(p.views)}` : ''}${p.shares != null ? ` · ↗ ${num(p.shares)}` : ''}</span></a>`).join('');
+    }
+    const chave = `lista:${e.etapa}|${h}`;
+    if (chave !== ultimoMeio) { const r = $('#meio').scrollTop; $('#meio').innerHTML = h; ultimoMeio = chave; $('#meio').scrollTop = r; }
+    moverAcao();
+    return;
+  }
+  if (!item) { $('#meio').innerHTML = '<div class="vazio">abrindo…</div>'; ultimoMeio = ''; moverAcao(); return; }
+  const f = item.ficha, mud = new Set(f.mudou || []);
+  const sub = [TIPO[f.tipo], FORMATO[f.formato], ({curso: 'molde curso', conferir: 'fomos conferir'})[f.molde] || '', f.nota != null ? `nota ${f.nota}` : '', NOME_ETAPA[f.etapa] || f.etapa,
+    f.gasto ? `gasto US$ ${f.gasto.toFixed(2)}` : ''].filter(Boolean).join(' · ');   // gasto: 19/10/2026 (gasto.jsonl do vídeo)
+  // 24/10/2026 (ele: "o botão para sair do vídeo selecionado deveria sair dali e ir para parte de baixo, deslocando para
+  // o lado o nome do vídeo"): o ‹ fica na linha do título, não mais ao lado do logo
+  let h = `<div class="cab${tituloInteiro ? ' inteiro' : ''}">
+    <button type="button" class="voltar-item" data-voltar aria-label="Voltar à lista de vídeos">‹</button>
+    <div><b>#${f.num} · ${esc(f.titulo || 'pauta nova')}</b><small>${esc(sub)}${f.link ? ` · <span class="ver-original" role="link" data-original="${esc(f.link)}">ver original ↗</span>` : ''}</small></div>
+    </div>`;
+  // 24/10/2026 (ele: "tem que ter um botão para eu clicar e pedir para baixar"): o botão junto do aviso, na Pauta
+  if (f.passo === 'parou') h += `<div class="passo parou">Parou: ${esc(f.erro)}${f.etapa === 'Pauta' ? ` <button type="button" class="pedir-ajuste" id="baixar-de-novo">Baixar de novo</button>` : ''}</div>`;
+  // 21/10/2026 (fase 2 do radar): a pauta que o radar sugeriu espera ele decidir; nada roda (nem custa) antes disso
+  else if (f.passo === 'sugerida pelo radar') {
+    const r = f.radar || {};
+    h += `<div class="passo"><b>Sugerida pelo radar</b> · @${esc(r.conta || '')} (${esc(r.quem || '')}), ${esc(String(r.fator || ''))}x o normal da conta · nota ${esc(String(r.nota ?? ''))}</div>
+      <div class="bloco"><div class="num">?</div><div><span class="q">Por que pode bombar</span><span class="f">${esc(r.porque || '')}</span>
+      <span class="t">Onde provar: ${esc(r.prova || '')}</span><span class="t">Formato sugerido: ${esc(r.formato || '')}${r.parecido_com ? ' · parecido com: ' + esc(r.parecido_com) : ''}</span></div></div>
+      <div style="flex-grow:1"></div><button class="acao" id="fazer-pauta">Fazer esta pauta · o estúdio analisa e escreve o roteiro</button>
+      <button type="button" class="link" id="descartar-pauta" style="margin-top:8px">Descartar (diga o porquê, o radar aprende)</button>`;
+  }
+  else if (!item.blocos.length) h += `<div class="passo">${esc(f.passo)} · há ${ha(f.passo_desde)}. O roteiro aparece aqui quando ficar pronto (uns 5 minutos).</div>`;
+  const naAnimacao = f.etapa === 'Animação' || f.etapa === 'Aguardando';
+  if (f.etapa === 'Publicado') h += telaPublicado(f);
+  // 22/10/2026 ("aprovo o plano tela-do-roteiro"; ele: "uma espécie de treeview, mostrando o roteiro em blocos como já
+  // temos, assim como a segunda opinião"): no roteiro, cada parte é uma linha que abre e fecha (Resumo, Segunda opinião,
+  // Checagem, Voz, Roteiro com um bloco por linha); na Animação e no Publicado a tela segue como era
+  const emArvore = !naAnimacao && f.etapa !== 'Publicado' && item.blocos.length > 0;
+  $('#app').classList.toggle('com-arvore', emArvore);
+  const rs = item.resumo || {};
+  // as partes de cima (Resumo, Segunda opinião, Checagem, Voz) ficam numa linha de botões; tocar abre o conteúdo logo
+  // abaixo, uma de cada vez (medido no celular: quatro linhas de árvore deixavam só 1 a 4 dos 9 blocos à vista)
+  const paineis = [];
+  if (emArvore && (rs.analise || rs.angulo))
+    paineis.push({id: 'resumo', rotulo: 'Resumo', corpo: `<div class="md">${rs.angulo ? `<p><b>Ângulo:</b> ${esc(rs.angulo)}</p>` : ''}${md(rs.analise || '')}</div>`});
+  if (emArvore && rs.checagem) {
+    const linhas = rs.checagem.split('\n').filter(l => /^\s*\|/.test(l) && !/^\s*\|[\s:|-]+\|\s*$/.test(l));
+    const n = Math.max(0, linhas.length - 1);
+    paineis.push({id: 'checagem', rotulo: 'Checagem', titulo: n ? `${n} linha${n === 1 ? '' : 's'} na checagem` : 'Checagem', corpo: tabelaMd(rs.checagem)});
+  }
+  if (naAnimacao) {
+    // 16/10/2026 (ele: "tem que pensar melhor nessa tela [...] acho que tem que deixar o preview menor para caber", com a
+    // prancha aprovada): prévia pequena à esquerda; à direita a última mudança (antes e depois) e "Voltar como estava";
+    // embaixo, a conferência numa linha de bolinhas
+    const an = item.animacao || {}, cf = an.conferencia || {}, op = cf.opiniao || {}, partes = op.partes || [];
+    const cor = n => n === 'bom' ? 'var(--verde)' : n === 'falta' ? 'var(--rosa)' : 'var(--amarelo)';
+    const ruins = partes.filter(x => x.nota !== 'bom').length, cpv = an.capas || {};
+    const v = encodeURIComponent(`${cf.quando || ''}|${cpv.escolhida || ''}|${cpv.v || ''}`);   // a prévia recarrega quando a capa muda
+    const fazendoCapa = f.passo === 'fazendo as capas', gerando = f.passo === 'gerando o vídeo final', publicando = f.passo === 'publicando';
+    if (f.passo === 'animando' || fazendoCapa || gerando) {
+      // a porcentagem é a etapa do animador; entre uma etapa e outra anda devagar (até 9 pontos) para mostrar que não parou
+      const base = f.progresso ?? 5, prox = {5: 10, 10: 40, 20: 40, 40: 60, 60: 80, 70: 90, 80: 88, 88: 95, 90: 100, 95: 100}[base] || base + 5;
+      const seg = (Date.now() - new Date(f.atualizado)) / 1000, pct = Math.min(prox - 1, Math.round(base + Math.min(9, seg / 20)));
+      // 16/10/2026 (ele: "quando começa a editar o vídeo tem que parar de mostrar o preview e mostrar isso"): enquanto o
+      // animador trabalha, a prévia e as capas saem e fica só o andamento, grande
+      const ultimo = (f.passos || []).slice(-1)[0];
+      h += `<div class="editando" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
+        <div class="ed-linha"><span class="ed-tit">${fazendoCapa ? 'Fazendo as capas…' : gerando ? 'Gerando o vídeo final…' : 'Editando o vídeo…'}</span><b class="ed-pct">${pct}%</b></div>
+        <div class="barra-prog"><div style="width:${pct}%"></div></div>
+        <span class="ed-sub">${ultimo ? esc(ultimo.texto) + ' · ' : ''}há ${ha(f.passo_desde)} · ${gerando ? 'quadro a quadro, com a capa, a voz, a música e os sons' : 'a prévia volta quando chegar a 100%'}</span></div>`;
+    }
+    // 16/10/2026 ("aprovo o plano v2-parte4-publicar"; ele: "aqui poderia mostrar uma animação publicando"): as bolinhas
+    // do Instituto acendem em onda enquanto cada passo do publicador aparece
+    if (f.etapa === 'Aguardando' && f.erro && !gerando && !publicando)       // 16/10 (ele: "parou de mostrar o publicando. por quê?")
+      h += `<div class="passo parou"><b>${esc(f.passo)}</b>: ${esc(f.erro)}${f.passo.startsWith('publica') ? (f.publicado && f.publicado.parcial ? ' · parte já saiu: confira antes de publicar de novo' : ' · nada foi publicado') : ''}</div>`;
+    if (publicando) {
+      const passos = f.passos || [];
+      h += `<div class="publicando"><div class="pub-logo" id="pub-logo" aria-hidden="true">${SIMB_MINI}</div><b class="pub-tit">Publicando…</b>
+        <ol class="pub-passos">${passos.map((x, i) => `<li class="${i === passos.length - 1 ? 'agora' : 'feito'}">${esc(x.texto)}</li>`).join('') || '<li class="agora">começando</li>'}</ol>
+        <span class="ed-sub">começou às ${hora(f.passo_desde)} · o Instagram leva de 1 a 3 minutos para processar</span></div>`;
+    }
+    if (an.tem_cena && f.passo !== 'animando' && !fazendoCapa && !gerando && !publicando) {
+      // 16/10/2026 (ele, com print: "esses dois itens antes e depois não precisa, podemos usar essa área para outra coisa e
+      // aumentar um pouquinho o tamanho do preview"): prévia maior à esquerda; à direita a capa e, numa linha, a última
+      // mudança com "Voltar como estava"
+      const m = (an.mudou || [])[0], tm = m ? an.tempos[m] : null;
+      const cp = an.capas || {}, ops = cp.opcoes || [];
+      const img = (n, g) => `/item/${f.num}/animacao/capa-${n}${g ? '-grade' : ''}.jpg?v=${cp.v}`;
+      // 16/10/2026 (ele: "depois que eu aprovar a capa some da tela as opções"): com a capa escolhida fica só ela,
+      // pequena, e "trocar capa" mostra as opções de novo
+      const escolhida = ops.find(o => o.op === cp.escolhida);
+      const capas = fazendoCapa ? `<span class="t">O animador está fazendo as capas…</span>`
+        : !ops.length ? `<span class="t">A capa sai depois da primeira animação.</span>`
+        : escolhida && !verCapas ? `<div class="capas capa-so"><span class="rotulo" style="color:var(--azul)">Capa</span>
+          <a href="${img(escolhida.op)}" target="_blank" rel="noopener" title="abrir a capa inteira"><img src="${img(escolhida.op, 1)}" alt="A capa escolhida"></a>
+          <b>${esc(escolhida.frase || '')}</b>${f.etapa === 'Animação' ? `<button type="button" class="link" id="trocar-capa">trocar capa</button>` : ''}</div>`
+        : `<div class="capas"><span class="rotulo" style="color:var(--azul)">Capa · ${cp.escolhida ? 'escolhida a ' + cp.escolhida : 'escolha uma'}${cp.tem_escolha_velha ? ' (refeita; escolha de novo)' : ''}</span>
+          <div class="capas-op">${ops.map(o => `<div class="capa-op${cp.escolhida === o.op ? ' escolhida' : ''}">
+            <a href="${img(o.op)}" target="_blank" rel="noopener" title="abrir a capa inteira"><img src="${img(o.op, 1)}" alt="Capa opção ${o.op} como aparece na grade"></a>
+            <b>${o.op}. ${esc(o.frase || '')}</b>
+            ${o.aviso ? `<span class="t" style="color:var(--amarelo)">⚠ Os Olhos: ${esc(o.aviso)}</span>` : ''}
+            <details><summary>por quê</summary><span class="t">${o.prova ? `o vídeo prova em ${esc(o.prova)} · ` : ''}${esc(o.porque || '')}${o.risco ? ` · risco: ${esc(o.risco)}` : ''}</span></details>
+            ${cp.escolhida === o.op ? '<span class="ok">✓ escolhida</span>' : `<button type="button" data-capa="${o.op}">Escolher</button>`}</div>`).join('')}</div>
+          <span class="t" style="font-size:11px">Para mudar, peça no chat falando da capa.</span>${escolhida ? `<button type="button" class="link" id="fechar-capas">fechar</button>` : ''}</div>`;
+      h += `<div class="anim-topo">
+        <div class="anim-previa">${f.etapa !== 'Animação' && an.final ? `<video id="final-v" data-src="${encodeURIComponent(an.final.quando)}" class="final-v" controls playsinline preload="metadata" poster="/item/${f.num}/publicacao/capa.jpg?v=${encodeURIComponent(an.final.quando)}" src="/item/${f.num}/publicacao/final.mp4?v=${encodeURIComponent(an.final.quando)}" title="O vídeo final"></video>`
+          : `${an.previa_video
+              // 21/10/2026 ("aprovo o plano previa-em-video"): pronta a prévia em vídeo da versão de agora, ela toca
+              // como um vídeo comum (fluido, igual ao final); antes, a prévia montada ao vivo e o aviso
+              ? `<video id="previa-mp4" data-src="${an.previa_video}" class="previa-mp4" controls playsinline preload="auto" src="${an.previa_video}" title="Prévia do vídeo"></video>`
+              : `<iframe id="previa-ifr" data-src="${v}" title="Prévia do vídeo" src="/item/${f.num}/previa.html?mini=1&v=${v}"></iframe>
+          ${an.previa_gerando ? '<span class="t previa-gerando">gerando a prévia em vídeo… (~2 min)</span>' : ''}
+          ${(an.previa_parados || []).length ? `<span class="t" style="color:var(--amarelo)">Tela parada mais de 1 s em: ${an.previa_parados.map(([a, d]) => `${String(a).replace('.', ',')} s`).join(' · ')} (peça no chat para dar movimento)</span>` : ''}`}
+          <div class="prev-ctl"><button type="button" data-pulo-p="-5" aria-label="Voltar 5 segundos">−5</button><button type="button" data-pulo-p="-1" aria-label="Voltar 1 segundo">−1</button><b id="prev-t">0,0 s</b><button type="button" data-pulo-p="1" aria-label="Avançar 1 segundo">+1</button><button type="button" data-pulo-p="5" aria-label="Avançar 5 segundos">+5</button><button type="button" id="pedir-seg" title="Escreve o segundo na caixa do chat">✎ pedir</button><button type="button" id="fechar-previa" aria-label="Fechar a prévia grande">✕</button></div>`}
+          <a href="/item/${f.num}/previa.html" target="_blank" rel="noopener">abrir em tela cheia</a></div>
+        <div class="anim-mud">${capas}
+          ${m ? `<span class="t">Última mudança: bloco ${[m, ...(an.mudou || []).slice(1)].join(', ')} · <a href="/item/${f.num}/previa.html#t=${tm}" target="_blank" rel="noopener">ver em ${mmss(Math.floor(tm))}</a></span>
+          ${an.pode_voltar && f.passo !== 'animando' && f.etapa === 'Animação' ? `<button type="button" class="voltar-anim" id="voltar-anim">Voltar como estava</button>` : ''}` : ''}</div></div>`;
+      // 17/10/2026 ("aprovo o plano olhos-na-animacao"): a conferência é dos Olhos (vídeo inteiro, sem roteiro), com o
+      // conserto automático; sai a nota por parte. Conferência antiga (com partes) continua aparecendo como era.
+      const lst = (titulo, xs) => xs.length ? `<p><b>${titulo}</b></p><ul>${xs.map(x => `<li>${esc(String(x.t).replace('.', ','))} s · ${esc(x.msg || x.porque || '')}</li>`).join('')}</ul>` : '';
+      const corNota = n => n >= 7 ? 'var(--verde)' : n >= 5 ? 'var(--amarelo)' : 'var(--rosa)';
+      if (cf.quem === 'olhos') h += `<details class="opiniao" ${opiniaoAberta ? 'open' : ''}><summary>Conferência dos Olhos ${op.nota_para_segurar != null ? `<span class="bola" style="background:${corNota(op.nota_para_segurar)}"></span> nota ${esc(String(op.nota_para_segurar))}/10` : '· sem opinião'} · viu até ${Math.round(cf.fim)} s · ${hora(cf.quando)}${(cf.consertos || []).length ? ` · consertou ${cf.consertos.length}` : ''}${(cf.sobrou || []).length ? ` · sobrou ${cf.sobrou.length}` : ''}${(cf.regua || []).length ? ` · régua: ${cf.regua.length}` : ''}${cf.sons ? ` · sons: ${cf.sons.length}` : ''}</summary>
+        ${op.erro ? `<p>${esc(op.erro)}</p>` : ''}
+        ${op.entendi ? `<p><b>Entendeu:</b> ${esc(op.entendi)}</p>` : ''}${op.sem_som ? `<p><b>Sem som:</b> ${esc(op.sem_som)}</p>` : ''}
+        ${op.primeiros_3s ? `<p><b>3 primeiros segundos:</b> ${esc(op.primeiros_3s)}</p>` : ''}${op.cortes ? `<p><b>Cortes:</b> ${esc(op.cortes)}</p>` : ''}
+        ${lst(`Consertado sozinho (${cf.rodadas} rodada${cf.rodadas === 1 ? '' : 's'}):`, cf.consertos || [])}
+        ${lst('Sobrou para você decidir:', cf.sobrou || [])}
+        ${lst('Na fala (não mexi; muda pelo roteiro):', cf.fala || [])}
+        ${lst('Precisaria de algo pago (não fiz):', cf.custo || [])}
+        ${lst('Perderia a atenção em:', op.perderia_atencao || [])}
+        ${lst('Não era defeito (o animador conferiu no quadro e no roteiro):', cf.nao_era || [])}
+        ${lst('Os Olhos falaram em tela vazia, mas a medida não confirmou:', cf.falsos || [])}
+        ${(cf.sons || []).length ? `<p><b>Sons:</b> ${cf.sons.map(s => `${s.t.toFixed(1).replace('.', ',')} s ${esc(s.som)}`).join(' · ')}</p>` : ''}
+        ${(cf.regua || []).length ? `<p><b>Régua de layout:</b></p><ul>${cf.regua.map(x => `<li>${x.de} s · ${esc(x.tipo)} · ${esc(x.msg)}</li>`).join('')}</ul>` : ''}
+        ${((cf.sobrou || []).length || (cf.regua || []).length) && f.passo !== 'animando' ? `<button type="button" class="pedir-ajuste" id="pedir-ajuste-anim" ${ajusteTravado() ? 'disabled' : ''}>Pedir ao animador para ajustar isso</button>` : ''}</details>`;
+      else h += `<details class="opiniao" ${opiniaoAberta ? 'open' : ''}><summary>Conferência ${partes.map(x => `<span class="bola" title="${esc(x.parte)}: ${esc(x.nota)}" style="background:${cor(x.nota)}"></span>`).join('')}${cf.quando ? ' · ' + hora(cf.quando) : ''}${cf.parcial ? ` · conferiu só os blocos ${cf.parcial.blocos.join(', ')}` : ''}${partes.length ? ` · ${ruins ? ruins + ' a melhorar' : 'tudo bom'}` : ''}${(cf.regua || []).length ? ` · régua: ${cf.regua.length}` : ''}${cf.sons ? ` · sons: ${cf.sons.length} efeito${cf.sons.length === 1 ? '' : 's'}` : ''}</summary>
+        ${op.mensagem ? `<p><b>Sem som, quem vê entende:</b> ${esc(op.mensagem)}</p>` : ''}
+        ${partes.length ? `<table class="partes">${partes.map(x => `<tr><td>${esc(x.parte)}</td><td style="color:${cor(x.nota)};font-weight:700">${esc(x.nota)}</td><td>${esc(x.porque)}</td></tr>`).join('')}</table>` : ''}
+        ${(op.nao_fecha || []).length ? `<p><b>Na tela:</b></p><ul>${op.nao_fecha.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+        ${op.nota_para_segurar != null ? `<p><b>Nota para segurar:</b> ${esc(String(op.nota_para_segurar))}/10 · <b>3 primeiros segundos:</b> ${esc(op.primeiros_3s || '')}</p>` : ''}
+        ${op.cortes ? `<p><b>Cortes:</b> ${esc(op.cortes)}</p>` : ''}
+        ${(op.perderia_atencao || []).length ? `<p><b>Perderia a atenção em:</b></p><ul>${op.perderia_atencao.map(x => `<li>${esc(String(x.t))} s · ${esc(x.porque)}</li>`).join('')}</ul>` : ''}
+        ${(cf.sons || []).length ? `<p><b>Sons:</b> ${cf.sons.map(s => `${s.t.toFixed(1).replace('.', ',')} s ${esc(s.som)}`).join(' · ')}</p>` : ''}
+        ${(cf.regua || []).length ? `<p><b>Régua de layout:</b></p><ul>${cf.regua.map(x => `<li>${x.de} s · ${esc(x.tipo)} · ${esc(x.msg)}</li>`).join('')}</ul>` : ''}
+        ${(ruins || (op.nao_fecha || []).length || (cf.regua || []).length) && f.passo !== 'animando' ? `<button type="button" class="pedir-ajuste" id="pedir-ajuste-anim" ${ajusteTravado() ? 'disabled' : ''}>Pedir ao animador para ajustar isso</button>` : ''}</details>`;
+    }
+    // 17/10/2026 ("aprovo o plano voltar-ao-roteiro"): da Animação de volta ao roteiro (dois toques)
+    if (!trabalhandoNoPasso(f.passo))
+      h += `<button type="button" class="link" id="voltar-roteiro" style="justify-self:start">voltar ao roteiro</button>`;
+    // 16/10/2026 ("aprovo o plano v2-aprovar-video"): a legenda do post, escrita pelo agente, e o botão de aprovar
+    const lg = an.legenda;
+    if (lg || f.passo === 'escrevendo a legenda') {
+      h += `<div class="legenda-post"><div class="lp-cab"><span class="rotulo" style="color:var(--azul)">Legenda do post${lg ? ` · ${lg.caracteres} caracteres` : ''}</span>
+        ${lg ? (lg.erros.length ? `<span class="lp-ruim">✗ ${esc(lg.erros.join('; '))}</span>` : `<span class="lp-bom">✓ passa no portão</span>`) : ''}
+        ${lg ? `<button type="button" class="link" id="copiar-legenda">copiar</button>` : ''}</div>
+        ${lg ? `<pre class="lp-texto">${esc(lg.texto)}</pre>` : `<span class="t">${f.passo === 'escrevendo a legenda' ? 'O agente está escrevendo a legenda…' : ''}</span>`}
+        ${lg && f.etapa === 'Animação' ? `<span class="t" style="font-size:11px">Para mudar, peça no chat: "na legenda do post, …".</span>` : ''}</div>`;
+    }
+    if (f.etapa === 'Animação' && !fazendoCapa && f.passo !== 'animando') {
+      const faltas = an.faltas || [], graves = an.graves_regua || [];
+      // 21/10/2026 ("aprovo o plano pedido-limpo"): se só o grave da régua trava, ele vê qual é e pode aprovar assim
+      const soRegua = faltas.length === 1 && graves.length && /^a régua achou/.test(faltas[0]);
+      // 22/10/2026 ("aprovo o plano chat-trabalhando"): o que falta vira pílulas; os avisos da régua ficam recolhidos e
+      // em português ("aos 0,2 s, texto coberto: ..."), em vez de "0.2 s · escondido · ..."
+      const pilula = x => /^a régua achou/.test(x) ? `⚠ ${graves.length} aviso${graves.length === 1 ? '' : 's'} na tela`
+        : /trabalhando/.test(x) ? '⏳ ' + x : /capa/.test(x) ? '🖼 ' + x : '• ' + x;
+      const avisos = graves.length ? `<details class="fa-avisos"><summary>ver os avisos</summary><ul>${graves.slice(0, 6).map(g => `<li>${esc(traduzRegua(g))}</li>`).join('')}</ul></details>` : '';
+      // 24/10/2026 (ele: "tenho que fazer algo para mandar consertar?"): o conserto num toque, com a lista que a régua achou
+      avisosRegua = graves.slice(0, 12).map(traduzRegua);
+      h += soRegua ? `<div class="t falta-aprovar"><span class="fa-tit">A régua achou:</span> ${pilula(faltas[0])} · conserte num toque ou aprove assim.${avisos}
+          <button type="button" class="pedir-ajuste" id="consertar-avisos" ${ajusteTravado() ? 'disabled' : ''}>Consertar ${graves.length === 1 ? 'este aviso' : 'estes avisos'}</button></div>
+          <button class="acao" id="aprovar-video" data-mesmo-assim="1">Aprovar mesmo assim · vai para Publicação</button>`
+        : faltas.length ? `<div class="t falta-aprovar"><span class="fa-tit">Para aprovar:</span> ${faltas.map(x => `<span class="fa-pil">${esc(pilula(x))}</span>`).join(' ')}${avisos}</div>`
+        : `<button class="acao" id="aprovar-video">Aprovar o vídeo · vai para Publicação</button>`;
+    }
+    const fin = an.final;
+    if (f.etapa !== 'Animação' && fin && !gerando) {
+      h += `<div class="legenda-post"><span class="rotulo" style="color:var(--azul)">Vídeo final · ${Math.round(fin.duracao)} s · ${fin.lufs} LUFS · ${fin.mb} MB</span>
+        <ul class="avisos" style="color:var(--azul)">${fin.itens.map(i => `<li style="color:${i.nivel === 'ok' ? 'var(--verde)' : i.nivel === 'ERRO' ? 'var(--rosa)' : 'var(--amarelo)'}">${esc(i.msg)}</li>`).join('')}</ul></div>`;
+    }
+    // 17/10/2026 ("aprovo o plano olhos"): o que um espectador independente viu no vídeo final (conteudo/olhos)
+    const ol = an.olhos;
+    if (f.etapa !== 'Animação' && ol && !ol.erro) {
+      h += `<details class="opiniao"><summary>Olhos · um espectador que não sabe nada do roteiro · nota ${esc(String(ol.nota_para_segurar ?? '–'))}/10</summary>
+        <p><b>Entendeu:</b> ${esc(ol.entendi || '')}</p><p><b>3 primeiros segundos:</b> ${esc(ol.primeiros_3s || '')}</p>
+        <p><b>Sem som:</b> ${esc(ol.sem_som || '')}</p><p><b>Cortes:</b> ${esc(ol.cortes || '')}</p>
+        ${(ol.perderia_atencao || []).length ? `<p><b>Perderia a atenção em:</b></p><ul>${ol.perderia_atencao.map(x => `<li>${esc(String(x.t))} s · ${esc(x.porque)}</li>`).join('')}</ul>` : ''}</details>`;
+    }
+    if (f.etapa === 'Publicado' && f.publicado) {
+      h += `<div class="publicado"><b>Publicado ✓</b>${f.publicado.instagram ? `<a href="${esc(f.publicado.instagram)}" target="_blank" rel="noopener">ver no Instagram</a>` : ''}
+        ${f.publicado.facebook ? `<a href="${esc(f.publicado.facebook)}" target="_blank" rel="noopener">ver no Facebook</a>` : ''}<span class="t">${hora(f.publicado.quando)}</span></div>`;
+    }
+    if (f.etapa === 'Aguardando' && !gerando && !publicando) {
+      h += fin && !fin.erros.length ? `<button class="acao" id="publicar">Publicar no Instagram e no Facebook</button>`
+        : `<div class="t falta-aprovar">${fin ? 'O vídeo final tem problema; peça o ajuste no chat.' : 'O vídeo final ainda não foi gerado.'}</div>`;
+      // travas-da-verificacao (23/10/2026): o vídeo final que parou ou saiu com problema se gera de novo (antes, só voltando ao
+      // roteiro, que refazia a voz e a animação inteira)
+      if (['o vídeo final parou', 'vídeo final com problema'].includes(f.passo))
+        h += `<button type="button" class="acao" id="gerar-final-de-novo">Gerar o vídeo final de novo</button>`;
+      // 24/10/2026 (o porteiro depois de aprovado): mudar o vídeo é reabrir a animação; o final de antes deixa de valer
+      h += `<button type="button" class="voltar-anim" id="reabrir-animacao"${f.pedido_reabrir ? ' style="border-color:var(--amarelo);color:var(--amarelo)"' : ''}>Reabrir a animação${f.pedido_reabrir ? ' · com o seu pedido' : ''}</button>`;
+    }
+  }
+  const vz = item.voz;
+  if (f.etapa === 'Roteiro e voz' && (vz || f.passo === 'gravando a voz')) {
+    // 16/10/2026 ("aprovo o plano v2-parte2-voz"): o áudio do roteiro, para ouvir antes de aprovar
+    const avisos = [...(vz && vz.problemas || []), ...(vz && vz.avisos || [])];
+    // 18/10/2026 ("aprovo o plano voz-gravando"; ele: "quando ta gravando tem que mostrar que ta granvando e nào permitir
+    // da play"): enquanto grava, sai o player (tocava a voz velha) e entra o aviso grande, como o "Editando o vídeo…"
+    const gravandoVoz = f.passo === 'gravando a voz';
+    const vozInfo = vz && !gravandoVoz ? `${Math.round(vz.duracao)} s · montada às ${hora(vz.quando)}` : gravandoVoz ? 'gravando…' : '';
+    const vozCaixa = `<div class="voz-caixa"><div class="rotulo" style="color:var(--azul)">Voz${vozInfo ? ' · ' + vozInfo : ''}</div>
+      ${gravandoVoz ? `<div class="editando" role="status"><span class="ed-tit">Gravando a voz…</span>
+        <span class="ed-sub">há ${ha(f.passo_desde)} · o play volta quando a voz nova estiver pronta</span></div>`
+        : vz ? `<audio controls preload="none" src="/api/item/${f.num}/audio?v=${encodeURIComponent(vz.quando)}" style="width:100%"></audio>` : ''}
+      ${avisos.length ? `<ul class="avisos">${avisos.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</div>`;
+    if (emArvore) paineis.push({id: 'voz', rotulo: gravandoVoz ? 'Voz · gravando…' : vz ? 'Voz ▶' : 'Voz', titulo: vozInfo ? 'Voz · ' + vozInfo : 'Voz',
+                                alerta: avisos.length > 0, corpo: vozCaixa});
+    else h += vozCaixa;
+  }
+  const trecho = b => !b.nosso && CORTE_RE.test(b.fala) ? `<span class="t">trecho de ${mmss(b.fala.match(CORTE_RE)[1])} a ${mmss(b.fala.match(CORTE_RE)[3])} ${(b.fala.match(CORTE_RE)[5] || '').startsWith('material/') ? 'do vídeo baixado (' + esc(b.fala.match(CORTE_RE)[5]) + ')' : 'do vídeo dele'}</span>` : '';
+  if (emArvore) {
+    // um bloco por linha (número, nome, duração e o começo da fala); tocar abre a fala inteira, o trecho e a tela.
+    // O bloco que acabou de mudar abre sozinho
+    const todosAbertos = item.blocos.every(b => aberto('b' + b.n, mud.has(b.n)));
+    const pa = paineis.find(p => p.id === nosAbertos[`${f.num}:painel`]);
+    // 24/10/2026 (ele: "faz a opção 1"): Resumo e Checagem na linha do Roteiro (a linha deles saiu) e "abrir/fechar
+    // todos" vira ⇕; o painel aberto aparece logo abaixo da linha
+    h += `<div class="arvore">
+      <div class="roteiro-linha"><span class="no-tit">Roteiro</span><span class="no-info">${item.blocos.length} blocos · ~${item.segundos} s</span>
+      <span class="no-abas" role="tablist">${paineis.map(p => `<button type="button" role="tab" data-painel="${p.id}"
+        aria-selected="${pa === p}" class="${p.alerta ? 'alerta' : ''}" title="${esc(p.titulo || p.rotulo.replace(/<[^>]+>/g, ''))}">${p.rotulo}</button>`).join('')}</span>
+      <button type="button" class="abrir-todos" data-abrir-todos="${todosAbertos ? '0' : '1'}" aria-label="${todosAbertos ? 'fechar todos os blocos' : 'abrir todos os blocos'}" title="${todosAbertos ? 'fechar todos' : 'abrir todos'}">${todosAbertos ? '⇡' : '⇣'}</button></div>
+      ${pa ? `<div class="painel" role="tabpanel">${pa.corpo}</div>` : ''}
+      <div class="blocos-arvore">${item.blocos.map(b => { const fala = b.nosso ? b.fala : b.fala.replace(CORTE_RE, '');
+        return `<details class="bloco-no${b.nosso ? '' : ' dele'}${mud.has(b.n) ? ' mudou' : ''}" data-no="b${b.n}" ${aberto('b' + b.n, mud.has(b.n))}>
+        <summary><span class="num">${b.n}</span><span class="b-nome">${esc(b.bloco)}${b.nosso ? '' : ' · ' + esc(b.quem)}${durBloco(b.n)}</span><span class="b-fala">${esc(fala)}</span></summary>
+        <div class="b-corpo"><span class="f">${esc(fala)}</span>${trecho(b)}${b.tela ? `<span class="t">Na tela: ${esc(b.tela)}</span>` : ''}${mud.has(b.n) ? '<span class="agora">mudou agora</span>' : ''}</div></details>`; }).join('')}</div></div>`;
+  }
+  else if (item.blocos.length && f.etapa !== 'Publicado') {
+    h += `<div class="rotulo">Roteiro · ${item.blocos.length} blocos · ~${item.segundos} s · diga "altera o bloco 3"</div>`;
+    h += item.blocos.map(b => `<div class="bloco${b.nosso ? '' : ' dele'}${mud.has(b.n) ? ' mudou' : ''}"><div class="num">${b.n}</div><div>
+      <span class="q">${esc(b.bloco)} · ${b.nosso ? 'sua voz' : esc(b.quem)}${durBloco(b.n)}</span><span class="f">${esc(b.nosso ? b.fala : b.fala.replace(CORTE_RE, ''))}</span>${trecho(b)}
+      ${b.tela ? `<span class="t">Na tela: ${esc(b.tela)}</span>` : ''}${mud.has(b.n) ? '<span class="agora">mudou agora</span>' : ''}</div></div>`).join('');
+  }
+  // 25/10/2026 (ele: "tem que mostrar um botão. vermelho aprovar direção"): com proposta de mudança de direção esperando,
+  // o botão é o dela (o roteiro na tela ainda é o de antes, então Aprovar o roteiro sai até a direção ser aprovada)
+  const proposta = f.proposta && ['Pauta', 'Roteiro e voz'].includes(f.etapa);
+  if (proposta && !item.trabalhando && !item.pendentes)
+    // 26/10/2026 (#408, construir): o que ele acrescentou depois da proposta entra nela por este botão; só aparece quando
+    // ele acrescentou algo, e discreto (ele, print: "tem dois botões aparecendo"), para o vermelho continuar sendo o principal
+    // (ele: "tem dois botões, isso me confunde"): um botão só, o do próximo passo; com peça nova depois da proposta, aprovar
+    // sairia sem ela, então só aparece o de montar
+    h += `<div style="flex-grow:1"></div>`
+       + ((item.chat || []).some(c => c.quem === 'ele' && c.quando > (f.proposta.quando || '') && c.texto.indexOf('Monta a proposta') !== 0)
+          ? `<button type="button" class="acao" id="montar-proposta">Montar a proposta com o que acrescentei</button>`
+          : `<button type="button" class="acao direcao" id="aprovar-direcao">Aprovar a direção · reescreve o roteiro</button>`);
+  else if (f.esperando === 'Aprovar o roteiro' && !proposta) h += `<div style="flex-grow:1"></div><button class="acao" id="aprovar">Aprovar o roteiro · grava a voz</button>`;
+  // voz-parou-com-botao (22/10/2026): a voz que parou mostra o motivo e o botão de tentar de novo (antes, nada; vale
+  // também para o vídeo que já estava parado antes desta mudança, sem o "esperando")
+  if (f.passo === 'voz parou') h += `<div style="flex-grow:1"></div><div class="voz-problema"><b>A voz não saiu:</b>
+      <span>${esc(f.erro || '')}</span><div class="vp-botoes"><button type="button" class="acao" id="gravar-de-novo">Gravar a voz</button></div></div>`;
+  // botoes-sempre (22/10/2026): na etapa Roteiro e voz sem voz gravada e sem nada rodando (o #334 ficou assim), gravar
+  else if (f.etapa === 'Roteiro e voz' && !vz && f.passo === 'roteiro pronto' && !item.trabalhando && !item.pendentes)
+    h += `<div style="flex-grow:1"></div><button type="button" class="acao" id="gravar-de-novo">Gravar a voz</button>`;
+  if (f.esperando === 'Aprovar a voz') h += `<div style="flex-grow:1"></div><button class="acao" id="aprovar-voz">Aprovar a voz · vai para a animação</button>`;
+  // 17/10/2026 ("aprovo o plano voz-com-problema"; ele: "não sinalizou isso na tela e não me dá opção de aprovar o
+  // conserto"): o aviso fica embaixo, onde ele procura o botão, com consertar ou aprovar mesmo assim
+  // achado voz-com-problema.1 (#211, 08:12): a tela se redesenha a cada 2 s e trazia os botões de volta enquanto o
+  // pedido de conserto andava; dois toques viraram dois pedidos. Com o agente trabalhando ou pedido na fila, só o aviso
+  const consertando = item.trabalhando || item.pendentes || envios.some(m => m.item === f.num && m._estado === 'enviando');
+  if (f.esperando === 'Voz com problema' && consertando) h += `<div style="flex-grow:1"></div><div class="voz-problema"><b>Consertando a voz…</b></div>`;
+  // 19/10/2026 (ele: "está ruim essa tela, não dá para ver o local de dar play"): cada problema com o seu "▶ ouvir",
+  // que pula a voz para o começo daquele bloco e para no fim dele
+  const probs = (vz && vz.problemas && vz.problemas.length) ? vz.problemas : (f.erro ? f.erro.split(' · ') : []);
+  const jaTem = new Set();      // um botão por bloco (o bloco 10 tinha dois problemas e aparecia duas vezes)
+  const ouvir = p => { const m = /bloco (\d+)/.exec(p), b = m && vz && (vz.blocos || []).find(x => x.n === +m[1]);
+    if (!b || jaTem.has(b.n)) return ''; jaTem.add(b.n);
+    return b ? `<button type="button" class="vp-ouvir" data-ouvir="${b.ini}" data-ate="${b.fim}">▶ ouvir bloco ${b.n}</button>` : ''; };
+  if (f.esperando === 'Voz com problema' && !consertando) h += `<div style="flex-grow:1"></div><div class="voz-problema">
+      <b>A conferência da voz achou:</b>
+      <ul class="vp-lista">${probs.map(p => `<li><span>${esc(p)}</span>${ouvir(p)}</li>`).join('')}</ul>
+      <span>Ouça cada um. Se estiver bom, pode aprovar mesmo assim.</span>
+      <div class="vp-botoes"><button type="button" id="consertar-voz">Consertar</button>
+      <button type="button" id="aprovar-voz-assim">Ouvi, está ok · aprovar a voz</button></div></div>`;
+  // 22/10/2026 ("aprovo o plano botoes-sempre"; ele: "o botão que aprova deveria aparecer sempre e se tem alguma trava
+  // deveria mostrar no botão uma msg quando eu tentar"): o botão principal da etapa está sempre lá; travado, ele fica
+  // apagado e o toque diz no próprio botão o motivo e o que fazer (as travas são as de antes: nada aprova sem estar pronto)
+  // travas-da-verificacao: a pauta que parou tenta de novo pelo botão (antes, só mandando uma mensagem)
+  if (f.etapa === 'Pauta' && f.passo === 'parou')
+    h += `<div style="flex-grow:1"></div><button type="button" class="acao" id="tentar-pauta">Tentar a pauta de novo</button>`;
+  const PRINCIPAL = {'Pauta': ['aprovar', 'Aprovar o roteiro · grava a voz'], 'Roteiro e voz': ['aprovar-voz', 'Aprovar a voz · vai para a animação'],
+                     'Animação': ['aprovar-video', 'Aprovar o vídeo · vai para Publicação'], 'Aguardando': ['publicar', 'Publicar no Instagram e no Facebook']};
+  const pr = PRINCIPAL[f.etapa];
+  // 24/10/2026 (ele: "o botão só pode estar disponível quando ele puder ser apertado"; no #369 o Aprovar a voz ficou aceso
+  // enquanto o agente mudava a Tela, porque a espera "Aprovar a voz" continua gravada, e o toque deu erro duas vezes):
+  // o botão aceso só fica se a ação vale neste passo pelo mapa (item.mapa.botoes), sem trabalho e sem mensagem pendente
+  let apagado = false;
+  if (pr && h.includes(`id="${pr[0]}"`) && !podeApertar(ACAO_DO_PRINCIPAL[pr[0]], f)) {
+    h = h.replace(new RegExp(`<button[^>]*id="${pr[0]}"[^>]*>[\\s\\S]*?</button>`), ''); apagado = true;
+  }
+  if (pr && !proposta && !h.includes(`id="${pr[0]}"`) && (f.etapa !== 'Pauta' || item.blocos.length)) {
+    const motivo = travaDaEtapa(f, item, vz) || (apagado ? 'Espere: o estúdio está trabalhando neste vídeo. O botão libera quando terminar.' : '');
+    if (motivo) h += `<button type="button" class="acao travado" id="travado-${pr[0]}" data-trava="${esc(motivo)}">${esc(pr[1])}</button>`;
+  }
+  if (h === ultimoMeio) return;                    // nada mudou: não mexe na tela (nem na rolagem)
+  const rolagem = $('#meio').scrollTop;
+  // 16/10/2026 (ele: "em tela só fica piscando"): a prévia que já está na tela fica; só troca quando a animação muda de
+  // versão. 25/10/2026 (ele, #382: "clicando no preview [...] pula a tela e não dá play"): antes a prévia SAÍA da página
+  // e voltava a cada redesenho, e iframe que sai da página recarrega do zero (vídeo que sai pausa): tocava, o próximo
+  // redesenho (o "gerando a prévia…", um passo novo) recarregava e parava. Agora ela nunca sai: o resto da tela é
+  // trocado em volta dela (redesenhaEmVolta)
+  const vivo = ['#previa-ifr', '#previa-mp4', '#final-v'].map(s => $(s)).find(Boolean);
+  // a onda do "Publicando…", o Publicar e o voltar ao roteiro (o 1º toque) ficavam fora da página e voltavam a cada
+  // redesenho; com o morphdom eles nunca saem (o vai-e-volta derrubava o clique)
+  redesenhaEmVolta($('#meio'), h, vivo); ultimoMeio = h;
+  { const cab = $('#meio .cab'); if (cab) $('#meio').style.setProperty('--cab-h', (cab.offsetHeight - 10) + 'px'); }   // a linha do roteiro presa logo abaixo do título
+  $('#meio').scrollTop = rolagem;
+  moverAcao();
+}
+
+// 25/10/2026: troca o conteúdo de `caixa` pelo de `h` sem tirar `vivo` (a prévia tocando) da página. Se o desenho novo
+// tem o mesmo elemento (mesmo id e mesmo data-src), em cada nível, de dentro para fora, os irmãos dele são trocados pelos
+// do desenho novo e o elemento fica onde está; senão, troca tudo, como antes.
+function redesenhaEmVolta(caixa, h, vivo) {
+  // 25/10/2026 (ele: "tem cliques que às vezes não respondem ou demoram [...] tem como não precisar redesenhar toda
+  // vez?"): o painel inteiro era trocado (innerHTML) a cada mudança de texto (o "há 12 s", a porcentagem, um passo novo:
+  // a cada 2 s durante o trabalho); os botões eram recriados e o toque que começava num e terminava no outro se perdia.
+  // Agora o morphdom compara e muda só o texto ou o atributo diferente: o botão é o mesmo elemento, e a prévia, o
+  // vídeo e o áudio que estão tocando ficam (mesmo data-src ou src)
+  if (!window.morphdom) { caixa.innerHTML = h; return; }
+  const novo = caixa.cloneNode(false); novo.innerHTML = h;
+  morphdom(caixa, novo, {childrenOnly: true,
+    getNodeKey: n => (n.id || (n.dataset && (n.dataset.no || n.dataset.capa || n.dataset.painel))) || undefined,
+    onBeforeElUpdated: (de, para) => {
+      if (de.isEqualNode(para)) return false;
+      if (['IFRAME', 'VIDEO', 'AUDIO'].includes(de.tagName) && (de.dataset.src || de.getAttribute('src')) === (para.dataset.src || para.getAttribute('src'))) return false;
+      if (de === document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(de.tagName)) return false;
+      return true;
+    }});
+}
+
+// 25/10/2026: com o dedo (ou o mouse) apertado, nada da tela muda; o redesenho que chegar espera o toque terminar
+let dedoNaTela = false, redesenharDepois = false;
+document.addEventListener('pointerdown', () => { dedoNaTela = true; }, true);
+const soltou = () => { if (!dedoNaTela) return; dedoNaTela = false;
+  if (redesenharDepois) { redesenharDepois = false; setTimeout(() => { desenhaMeio(); desenhaChat(); }, 350); } };
+document.addEventListener('pointerup', soltou, true);
+document.addEventListener('pointercancel', soltou, true);
+
+// mapa-de-passos (24/10/2026): os passos em que o estúdio está trabalhando vêm do servidor (passos.py, item.mapa);
+// antes, duas listas aqui, cada uma diferente da do servidor
+function trabalhandoNoPasso(p) { return ((item && item.mapa && item.mapa.trabalhando) || []).includes(p); }
+const ACAO_DO_PRINCIPAL = {'aprovar': 'aprovar-roteiro', 'aprovar-voz': 'aprovar-voz', 'aprovar-video': 'aprovar-video', 'publicar': 'publicar'};
+function podeApertar(acao, f) {
+  const m = item && item.mapa;
+  if (!m) return true;                               // servidor antigo, sem o mapa: como antes
+  return m.botoes.includes(acao) && !item.trabalhando && !item.pendentes && !trabalhandoNoPasso(f.passo);
+}
+// botoes-sempre: o motivo do botão travado, em português de quem usa ("Espere: …", "Falta …", "toque em …")
+function travaDaEtapa(f, item, vz) {
+  const pct = f.progresso != null ? ` (${Math.round(f.progresso)}%)` : '';
+  if (trabalhandoNoPasso(f.passo)) return `Espere: ${f.passo}${pct}. O botão libera quando terminar.`;
+  if (item.trabalhando || item.pendentes) return 'Espere: o estúdio está respondendo o seu pedido no chat.';
+  if (f.etapa === 'Pauta') return f.passo === 'parou' ? 'A pauta parou (o motivo está no chat): toque em Tentar a pauta de novo.'
+    : `O roteiro ainda não está pronto para aprovar (${f.passo}).`;
+  if (f.etapa === 'Roteiro e voz') {
+    if (f.passo === 'voz parou') return 'A voz parou (o motivo está acima): toque em Gravar a voz.';
+    if (f.esperando === 'Voz com problema') return 'A conferência achou problema na voz: ouça e toque em Consertar ou em Ouvi, está ok.';
+    if (!vz) return 'A voz ainda não foi gravada: toque em Gravar a voz.';
+    return `A voz ainda não pode ser aprovada (${f.passo}).`;
+  }
+  if (f.etapa === 'Animação') {
+    const faltas = (item.animacao || {}).faltas || [];
+    return faltas.length ? 'Para aprovar falta: ' + faltas.join('; ') + '.' : `Ainda não dá para aprovar (${f.passo}).`;
+  }
+  if (f.etapa === 'Aguardando') {
+    const fin = (item.animacao || {}).final;
+    if (['o vídeo final parou', 'vídeo final com problema'].includes(f.passo)) return `${f.passo === 'o vídeo final parou' ? 'O vídeo final parou' : 'O vídeo final saiu com problema'}: toque em Gerar o vídeo final de novo, ou peça o ajuste no chat.`;
+    return !fin ? 'O vídeo final ainda não foi gerado.' : fin.erros.length ? 'O vídeo final tem problema: ' + fin.erros.join('; ') + '. Peça o ajuste no chat.'
+      : `Ainda não dá para publicar (${f.passo}).`;
+  }
+  return '';
+}
+
+// o botão principal da etapa vai para o alto do chat (não cobre mais o roteiro); os cliques são pelo id, como antes
+function moverAcao() {
+  const slot = $('#acao-slot'), novos = [...$('#meio').querySelectorAll('.acao, .falta-aprovar')];   // o aviso "Para aprovar..." também (cobria a prévia)
+  [...slot.children].forEach(b => { if (!b.id) b.remove(); else if (!novos.some(n => n.id === b.id)) b.remove(); });
+  novos.forEach(n => { const v = n.id && slot.querySelector('#' + n.id);
+    // botoes-sempre: o botão travado que fica atualiza o motivo (o estado do vídeo muda com a tela aberta)
+    if (v && v.classList.contains('travado')) { v.dataset.trava = n.dataset.trava; if (!v.classList.contains('mostrando')) v.textContent = n.textContent; n.remove(); return; }
+    if (v) { if (!v.disabled) n.remove(); else { v.replaceWith(n); } } else slot.appendChild(n); });
+}
+
+// 16/10/2026 ("aprovo o plano v2-publicado"; ele: "poderia mostrar só a capa do vídeo; se clicar aí mostra os dados do
+// vídeo, visualizações, compartilhamentos"): a capa grande; tocar nela abre os números do reel (API do Instagram)
+const NOMES_NUM = [['views', 'visualizações'], ['reach', 'alcance'], ['likes', 'curtidas'], ['comments', 'comentários'],
+                   ['shares', 'compartilhamentos'], ['saved', 'salvos']];
+function telaPublicado(f) {
+  const pb = f.publicado || {}, nu = numeros[f.num], fmt = n => n == null ? '–' : Number(n).toLocaleString('pt-BR');
+  let h = `<div class="pub-feito"><button type="button" class="capa-grande" id="ver-numeros" aria-label="Ver os números do vídeo">
+      <img src="/item/${f.num}/publicacao/capa.jpg" alt="Capa do vídeo publicado"><span>${verNumeros ? 'esconder os números' : 'ver os números'}</span></button>
+    <div class="pub-info"><b class="pub-ok">Publicado ✓</b><span class="t">${pb.quando ? 'às ' + hora(pb.quando) + ' · ' + pb.quando.slice(8, 10) + '/' + pb.quando.slice(5, 7) : ''}</span>
+      ${pb.instagram ? `<a class="pub-link" href="${esc(pb.instagram)}" target="_blank" rel="noopener">ver no Instagram</a>` : ''}
+      ${pb.facebook ? `<a class="pub-link" href="${esc(pb.facebook)}" target="_blank" rel="noopener">ver no Facebook</a>` : ''}`;
+  if (verNumeros) {
+    if (!nu && buscandoNumeros) h += `<div class="numeros"><span class="t">buscando os números no Instagram…</span></div>`;
+    else if (nu && nu.erro) h += `<div class="numeros"><span class="lp-ruim">Não leu: ${esc(nu.erro)}</span></div>`;
+    else if (nu) h += `<div class="numeros"><div class="num-grade">${NOMES_NUM.map(([k, n]) => `<div><b>${fmt(nu[k])}</b><span>${n}</span></div>`).join('')}
+        <div><b>${nu.ig_reels_avg_watch_time ? (nu.ig_reels_avg_watch_time / 1000).toFixed(1).replace('.', ',') + ' s' : '–'}</b><span>tempo médio assistido</span></div>
+        <div><b>${nu.retencao != null ? Math.round(nu.retencao * 100) + '%' : '–'}</b><span>retenção</span></div>
+        ${(() => { const md = nu.mediana || {}, v = (x, d = 1) => x == null ? '–' : Number(x).toFixed(d).replace('.', ',');
+          // 22/10/2026 ("aprovo o plano fluxo-viral-util"): o que diz se o vídeo se espalha, comparado com a mediana da página
+          const forte = nu.envios_100 != null && md.envios_100 ? nu.envios_100 / md.envios_100 : null;
+          return `<div><b style="${forte != null && forte >= 2 ? 'color:var(--verde)' : ''}">${v(nu.envios_100, 2)}</b><span>envios a cada 100 vis.${md.envios_100 != null ? ` (página: ${v(md.envios_100, 2)})` : ''}</span></div>
+            <div><b>${nu.reels_skip_rate != null ? v(nu.reels_skip_rate) + '%' : '–'}</b><span>pulam nos 3 s${md.pula_3s != null ? ` (página: ${v(md.pula_3s)}%)` : ''}</span></div>`; })()}</div>
+        <div class="num-pe"><span class="t">Instagram · atualizado às ${hora(nu.quando)}${buscandoNumeros ? ' · buscando…' : ''}</span>
+        <button type="button" class="link" id="atualizar-numeros">atualizar</button></div>
+        <span class="t" style="font-size:11px">Nas primeiras horas o Instagram ainda está contando: alcance e tempo médio podem vir zerados.</span></div>`;
+  }
+  return h + '</div></div>';
+}
+async function buscarNumeros(atualizar) {
+  const n = estado().item; buscandoNumeros = true; ultimoMeio = ''; desenhaMeio();
+  try { numeros[n] = await api(`/api/item/${n}/numeros${atualizar ? '?atualizar=1' : ''}`, {}, 120000); }
+  catch (e) { numeros[n] = Object.assign({}, numeros[n] || {}, {erro: e.message}); }
+  buscandoNumeros = false; ultimoMeio = ''; desenhaMeio();
+}
+
+function bolha(m) {
+  if (m.quem === 'ele') {
+    // 24/10/2026 (ele: "esse carimbo de data está ocupando uma linha que não precisa, poderia ficar dentro do balão"):
+    // a hora e o "recebida" vão no canto de baixo do balão, como no WhatsApp; o "não chegou" continua fora (é um botão)
+    const st = m._estado === 'enviando' ? '<span class="carimbo enviando">enviando…</span>'
+      : m._estado === 'falhou' ? '' : `<span class="carimbo">${hora(m.quando)} · ✓ recebida</span>`;
+    const falhou = m._estado === 'falhou' ? `<span class="falhou" data-reenviar="${esc(m.id)}">não chegou · tocar para reenviar</span>` : '';
+    return `<div class="dele-m"><div>${esc(m.texto)}${st}</div>${falhou}</div>`;
+  }
+  // 24/10/2026 (parte B): o relatório do animador (conferência, avisos, tempo, custo) vem fechado em "detalhes"
+  const det = m.detalhes ? `<details class="detalhes" data-det="${esc(m.id)}"${detAbertos.has(m.id) ? ' open' : ''}><summary>detalhes</summary><p>${esc(m.detalhes)}</p></details>` : '';
+  // a hora da resposta do agente também dentro do balão; a do aviso do sistema fica fora (o balão dele é cortado em 3 linhas)
+  // e na própria mensagem de parada, enquanto a pauta estiver parada
+  const baixar = /A pauta parou em/.test(m.texto) && item && item.ficha && item.ficha.passo === 'parou' && item.ficha.etapa === 'Pauta'
+    ? ` <button type="button" class="pedir-ajuste" data-baixar="1">Baixar de novo</button>` : '';
+  if (m.quem === 'sistema') return `<div class="resp-m sistema"><div class="md">${md(m.texto)}</div>${baixar}${det}<span>${hora(m.quando)}</span></div>`;
+  return `<div class="resp-m"><div class="md">${md(m.texto)}<span class="carimbo">${hora(m.quando)}</span></div>${det}</div>`;
+}
+
+// 19/10/2026 (ele: "quando eu solicito algo ali no chat fica complicado ler a resposta"): a resposta vinha com os ** e
+// os - crus e os links inteiros; agora negrito, lista, parágrafo e o link com o nome do site
+function md(texto) {
+  const linha = l => esc(l).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (_, n, u) => `<a href="${u}" target="_blank" rel="noopener">${n}</a>`);
+  let h = '', lista = false;
+  for (const l of String(texto).split('\n')) {
+    const it = l.match(/^\s*[-•*]\s+(.*)/);
+    if (it) { if (!lista) { h += '<ul>'; lista = true; } h += `<li>${linha(it[1])}</li>`; continue; }
+    if (lista) { h += '</ul>'; lista = false; }
+    const tit = l.match(/^\s*#{1,6}\s+(.*)/);          // tela-do-roteiro: o "## A pauta" do resumo vira título, não texto com ##
+    if (tit) h += `<p><b>${linha(tit[1])}</b></p>`;
+    else if (l.trim()) h += `<p>${linha(l)}</p>`;
+  }
+  return h + (lista ? '</ul>' : '');
+}
+
+// 26/10/2026 (ele: "onde fica as regras? talvez eu tenha que poder ver esse caderno de regras caso queira mudar algo" e
+// "pode fazer"): a tela Regras. Lista os cadernos (e as decisões do vídeo aberto); em cada caderno ele dita o que quer
+// mudar, vê o que sai e o que entra, e só então grava; dá para desfazer a última mudança (regras_tela.py)
+const rg = {aberto: null, dados: null, msg: '', ocupado: false, desfazerEm: 0};
+async function regrasMostra(nome) {
+  const tela = $('#regras-tela');
+  rg.aberto = nome || null; tela.hidden = false;
+  try {
+    rg.dados = nome ? await api('/api/regras/' + nome) : await api('/api/regras' + (estado().item ? '?item=' + estado().item : ''));
+  } catch (e) { rg.dados = null; rg.msg = 'Não abriu: ' + e.message; }
+  regrasDesenha();
+}
+// os cadernos quebram a frase em linhas de 120 letras; a continuação volta para a linha de cima (senão vira parágrafo)
+function desquebra(t) {
+  const out = [];
+  for (const l of String(t).split('\n')) {
+    const ant = out.length ? out[out.length - 1] : '';
+    if (l.trim() && ant.trim() && !/^\s*([-•*]\s|#|\||\d+[.)]\s)/.test(l) && !/^\s*(#|\|)/.test(ant)) out[out.length - 1] = ant + ' ' + l.trim();
+    else out.push(l);
+  }
+  return out.join('\n');
+}
+function regrasDesenha() {
+  const tela = $('#regras-tela'), d = rg.dados || {};
+  const topo = (t, voltar) => `<div class="rg-topo">${voltar ? '<button type="button" class="rg-x" data-rg="lista" aria-label="Voltar">‹</button>' : ''}<b>${esc(t)}</b><button type="button" class="rg-x" data-rg="fechar" aria-label="Fechar">✕</button></div>`;
+  const aviso = rg.msg ? `<p class="rg-aviso">${esc(rg.msg)}</p>` : '';
+  if (!rg.aberto) {
+    const dec = d.decisoes;
+    tela.innerHTML = topo('Regras') + aviso
+      + (dec ? `<div class="rg-sec">DECISÕES DESTE VÍDEO (#${esc(String(estado().item))})</div>`
+        + (dec.length ? `<ul class="rg-dec">${dec.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p>Nenhuma decisão anotada ainda.</p>')
+        + '<p class="t">Para mudar uma decisão deste vídeo, diga no chat do vídeo.</p>' : '')
+      + '<div class="rg-sec">REGRAS DA PÁGINA (valem para todos os vídeos)</div>'
+      + (d.cadernos || []).map(c => `<button type="button" class="rg-card" data-rg-caderno="${esc(c.nome)}"><b>${esc(c.para_que || c.titulo)}</b>`
+        + `<span>${esc(c.nome)} · ${c.linhas} linhas${c.so_leitura ? ' · só leitura' : ''}${c.proposta ? ' · mudança esperando o seu ok' : ''}</span></button>`).join('');
+    return;
+  }
+  const pr = d.proposta;
+  let h = topo(d.nome || rg.aberto, true) + aviso;
+  if (d.so_leitura) h += '<p class="t">Este caderno é montado pelo programa a partir dos números da página. Não se muda à mão.</p>';
+  else if (pr) {
+    h += `<div class="rg-prop"><p><b>Mudança pedida:</b> ${esc(pr.pedido)}</p><p><b>Na prática:</b> ${esc(pr.resumo)}</p>`
+      + (pr.conflito ? `<p class="rg-aviso">Atenção: ${esc(pr.conflito)}</p>` : '')
+      + pr.trocas.map(t => `<div class="rg-sai">${esc(t.antes)}</div><div class="rg-entra">${t.depois ? esc(t.depois) : '(sai)'}</div>`).join('')
+      + `<button type="button" class="rg-bt" data-rg="aplicar" ${rg.ocupado ? 'disabled' : ''}>Gravar a mudança</button>`
+      + `<button type="button" class="rg-bt leve" data-rg="cancelar" ${rg.ocupado ? 'disabled' : ''}>Cancelar</button></div>`;
+  } else {
+    h += `<div class="rg-sec">QUERO MUDAR ALGO AQUI</div><textarea id="rg-pedido" placeholder="Escreva ou dite o que quer mudar nestas regras"></textarea>`
+      + `<button type="button" class="rg-bt" data-rg="propor" ${rg.ocupado ? 'disabled' : ''}>${rg.ocupado ? 'Montando a mudança… (uns 30 s)' : 'Mostrar como fica'}</button>`;
+  }
+  if (d.versoes && !pr) h += `<button type="button" class="rg-bt leve" data-rg="desfazer">${Date.now() - rg.desfazerEm < 6000 ? 'Toque de novo para desfazer' : 'Desfazer a última mudança'}</button>`;
+  if ((d.mudancas || []).length) h += '<div class="rg-sec">ÚLTIMAS MUDANÇAS</div><ul class="rg-dec">'
+    + d.mudancas.slice().reverse().map(m => `<li>${esc(m.quando.slice(8, 10) + '/' + m.quando.slice(5, 7) + ' ' + m.quando.slice(11, 16))} · ${esc(m.resumo || m.pedido || '')}</li>`).join('') + '</ul>';
+  h += `<div class="rg-texto md">${md(desquebra(d.texto || ''))}</div>`;
+  tela.innerHTML = h;
+}
+$('#regras-tela').addEventListener('click', async ev => {
+  const c = ev.target.closest('[data-rg-caderno]');
+  if (c) { rg.msg = ''; return regrasMostra(c.dataset.rgCaderno); }
+  const b = ev.target.closest('[data-rg]'); if (!b) return;
+  const acao = b.dataset.rg, nome = rg.aberto;
+  if (acao === 'fechar') { $('#regras-tela').hidden = true; rg.msg = ''; return; }
+  if (acao === 'lista') { rg.msg = ''; return regrasMostra(null); }
+  if (acao === 'desfazer' && Date.now() - rg.desfazerEm > 6000) { rg.desfazerEm = Date.now(); return regrasDesenha(); }
+  const corpo = acao === 'propor' ? {pedido: ($('#rg-pedido') || {}).value || ''} : {};
+  if (acao === 'propor' && !corpo.pedido.trim()) { rg.msg = 'Escreva o que quer mudar.'; return regrasDesenha(); }
+  rg.ocupado = true; rg.msg = ''; regrasDesenha();
+  try {
+    const r = await api(`/api/regras/${nome}/${acao}`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(corpo)}, 300000);
+    rg.msg = acao === 'aplicar' ? 'Gravado. Vale a partir do próximo pedido.' : acao === 'desfazer' ? 'Voltou à versão anterior.' : '';
+  } catch (e) { rg.msg = e.message; }
+  rg.ocupado = false; rg.desfazerEm = 0;
+  regrasMostra(nome);
+});
+$('#regras-abrir').addEventListener('click', () => { rg.msg = ''; regrasMostra(null); });
+
+// chat-trabalhando (22/10/2026): o aviso da régua ("0.2 s · escondido · 'X' com parte coberta por cena") em português
+const NOME_REGUA = {escondido: 'texto coberto', fora: 'texto fora da área do celular', sobreposto: 'textos um em cima do outro',
+  encostado: 'texto colado em outro', estourado: 'texto saindo da caixa', invisivel: 'texto da mesma cor do fundo',
+  'take-longo': 'fala longa sem variação na imagem', 'centro-vazio': 'centro da tela vazio', 'pedaço': 'imagem aparecendo só um pedaço',
+  encavalado: 'troca de cena encavalada', pequeno: 'letra pequena', empilhado: 'dois rótulos no alto', 'falta-selo': 'falta o selo',
+  vazio: 'tela vazia', erro: 'a régua não rodou', olhos: 'os Olhos ainda veem'};
+function traduzRegua(g) {
+  const m = String(g).match(/^([\d.]+)\s*s\s*·\s*([\w-]+)\s*·\s*(.*)$/);
+  if (!m) return String(g);
+  return `aos ${String(+m[1]).replace('.', ',')} s, ${NOME_REGUA[m[2]] || m[2]}: ${m[3]}`;
+}
+
+// a CHECAGEM.md tem tabela (afirmação | fonte | veredito): as linhas com "|" viram tabela, o resto segue o md()
+function tabelaMd(texto) {
+  let h = '', tab = [];
+  const fecha = () => { if (!tab.length) return;
+    const cel = l => l.trim().replace(/^\||\|$/g, '').split('|').map(c => md(c.trim()).replace(/^<p>|<\/p>$/g, ''));
+    const [cab, ...resto] = tab.filter(l => !/^\s*\|[\s:|-]+\|\s*$/.test(l));
+    h += `<table class="checagem"><tr>${cel(cab).map(c => `<th>${c}</th>`).join('')}</tr>${resto.map(l => `<tr>${cel(l).map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table>`;
+    tab = []; };
+  const solto = [];
+  for (const l of String(texto).split('\n')) {
+    if (/^\s*\|/.test(l)) { if (solto.length) { h += `<div class="md">${md(solto.join('\n'))}</div>`; solto.length = 0; } tab.push(l); }
+    else { fecha(); solto.push(l); }
+  }
+  fecha(); if (solto.length) h += `<div class="md">${md(solto.join('\n'))}</div>`;
+  return h;
+}
+
+// 17/10/2026 (voz-com-problema, achado chat.1): a conversa para na mensagem dele; o que o sistema escreve depois ficava
+// abaixo, fora da vista. Com algo escondido embaixo, aparece o "↓ nova mensagem"
+function maisAbaixo() {
+  $('#mais-abaixo').hidden = true; return;     // 19/10/2026: o botão saiu (a conversa desce sozinha); o resto fica para voltar se precisar
+  // 19/10/2026 (ele: "para que serve o botão nova mensagem?"): aparecia também quando só faltava o fim da resposta que
+  // ele já está lendo; agora só quando existe OUTRA mensagem que começa abaixo do que está na tela
+  const c = $('#msgs'), ult = c.lastElementChild;
+  const escondido = !!ult && ult.offsetTop - c.offsetTop > c.scrollTop + c.clientHeight - 10;
+  if ($('#mais-abaixo').hidden === escondido) $('#mais-abaixo').hidden = !escondido;
+}
+
+let avisoTrabalho = null;
+// os passos do agente em português, sem nome de arquivo (24/10/2026, ele: "mudando o ROTEIRO.md")
+const PASSO_ARQ = {'ROTEIRO.md': 'o roteiro', 'CHECAGEM.md': 'a checagem', 'ANALISE.md': 'a análise', 'INTENCAO.md': 'a intenção',
+                   'cena.html': 'a animação', 'legenda.md': 'a legenda'};
+const passoLegivel = t => String(t || '')
+  .replace(/\b(lendo|mudando|criando) (?:o |a )?([\w-]+\.(?:md|html|json))/gi, (_, v, a) => `${v} ${PASSO_ARQ[a] || 'um arquivo'}`)
+  .replace(/buscando na web:.*/i, 'pesquisando na web').replace(/lendo a página \S+/i, 'lendo uma fonte');
+function desenhaChat() {
+  const e = estado();
+  let msgs;
+  if (e.item) {
+    const doServidor = item ? item.chat : [];
+    const ids = new Set(doServidor.map(m => m.id));
+    envios = envios.filter(m => m.item !== e.item || !ids.has(m.id));
+    msgs = doServidor.concat(envios.filter(m => m.item === e.item));
+  } else {
+    msgs = envios.filter(m => m.item === 'pauta');
+  }
+  // 16/10/2026 (ele: "quando eu uso a barra de rolagem não para onde eu deixei, volta ao inicio"): a conversa só é
+  // redesenhada quando muda, e só desce sozinha se ele já estava no fim dela
+  // 24/10/2026 (ele: "pode fazer a 2, tira o link"): a conversa inteira, como no WhatsApp; antes o que vinha antes da
+  // última mensagem dele ficava atrás de um link. A rolagem continua indo à mensagem nova.
+  // 24/10/2026 (ele: "tem duas vezes a minha msg [...] tem o que o agente esta fazendo e tem um resumo da minha msg"):
+  // enquanto o estúdio trabalha no pedido dele, o aviso do sistema ("Reescrevendo o roteiro…") sai da conversa e vira o
+  // texto da linha de trabalho, acima da caixa; quando a resposta chega, ele volta ao lugar
+  const eleUlt = [...msgs].reverse().find(m => m.quem === 'ele');
+  const esperando = e.item && eleUlt && !eleUlt._estado && !msgs.find(m => m.responde === eleUlt.id);
+  avisoTrabalho = esperando ? [...msgs].reverse().find(m => m.quem === 'sistema' && m.quando >= eleUlt.quando) : null;
+  if (avisoTrabalho) msgs = msgs.filter(m => m !== avisoTrabalho);
+  const html = msgs.map(bolha).join('');
+  const caixa = $('#msgs');
+  if (html !== ultimoChat) {
+    const noFim = caixa.scrollHeight - caixa.scrollTop - caixa.clientHeight < 40, onde = caixa.scrollTop, trocou = chatDe !== (e.item || 'pauta');
+    if (dedoNaTela) { redesenharDepois = true; return; }
+    // 25/10/2026: o chat também muda só o que mudou (os botões das mensagens não são recriados a cada 2 s); trocou de
+    // vídeo, troca tudo
+    if (window.morphdom && !trocou) { const novo = caixa.cloneNode(false); novo.innerHTML = html; morphdom(caixa, novo, {childrenOnly: true}); }
+    else caixa.innerHTML = html;
+    ultimoChat = html; chatDe = e.item || 'pauta';
+    // tela-do-roteiro .3: a mensagem do sistema cortada em 3 linhas ganha o "ver tudo" (só quando cortou de verdade)
+    caixa.querySelectorAll('.resp-m.sistema > div').forEach(d => d.parentElement.classList.toggle('cortada', d.scrollHeight > d.clientHeight + 2));
+    const novas = caixa.querySelectorAll('.dele-m'), ultimaEle = novas[novas.length - 1];
+    // a resposta do agente à última mensagem dele aparece do começo (antes ficava a mensagem dele, a resposta escondida)
+    let alvo = ultimaEle;
+    for (let x = ultimaEle && ultimaEle.nextElementSibling; x; x = x.nextElementSibling)
+      if (x.classList.contains('resp-m') && !x.classList.contains('sistema')) { alvo = x; break; }
+    // 19/10/2026 (ele: "eu não queria ter que usar esse botão nova mensagem"): chegou mensagem nova, a conversa vai
+    // sozinha até ela (o começo da resposta do agente), esteja ele onde estiver; sem mensagem nova, fica onde estava
+    const qtd = caixa.querySelectorAll('.dele-m,.resp-m').length, chegou = qtd > (ultimaQtd || 0); ultimaQtd = qtd;
+    caixa.scrollTop = trocou || noFim || chegou ? (alvo ? alvo.offsetTop - caixa.offsetTop : caixa.scrollHeight) : onde;
+  }
+  maisAbaixo();
+  const f = item && e.item ? item.ficha : null;
+  // 16/10/2026 (ele: "mandei um pedido. não sei se ele recebeu. se esta trabalhando"): a situação da última mensagem
+  // dele fica sempre à vista, acima da caixa, mesmo quando a resposta longa empurra a mensagem para cima
+  const minhas = msgs.filter(m => m.quem === 'ele'), ultimaMinha = minhas[minhas.length - 1];
+  // 24/10/2026 (ele: "pode tirar essa linha"): o "sua mensagem das HH:MM: ✓ recebida · respondida às HH:MM" saiu; a hora
+  // e o recebida estão no balão dele, e o pedido em andamento tem o cartão. Fica só o estúdio trabalhando sem pedido dele
+  // (gravando a voz, fazendo as capas), que não aparece em lugar nenhum
+  let sit = '';
+  const respondida = ultimaMinha && msgs.find(m => m.responde === ultimaMinha.id);
+  if ((!ultimaMinha || respondida) && f && item.trabalhando && f.passo !== 'roteiro pronto' && f.passo !== 'parou') sit = `trabalhando há ${ha(f.passo_desde)} · ${f.passo}`;
+  const passos = f && !(ultimaMinha && msgs.find(m => m.responde === ultimaMinha.id)) ? (f.passos || []) : [];
+  // 22/10/2026 ("aprovo o plano chat-trabalhando"; print do #330): enquanto o estúdio trabalha no pedido dele, um cartão
+  // só: o pedido numa linha (tocar abre inteiro) e o passo de agora (antes: a mensagem cortada lá em cima e 4 linhas de
+  // passos, em inglês e repetidos)
+  const trabalhando = ultimaMinha && e.item && !ultimaMinha._estado && !msgs.find(m => m.responde === ultimaMinha.id);
+  if (trabalhando) {
+    const agora = passos.length ? passos[passos.length - 1].texto : (f && f.passo !== 'roteiro pronto' ? f.passo : 'na fila do agente');
+    const desde = f && f.passo_desde ? ha(f.passo_desde) : ha(ultimaMinha.quando);
+    // 24/10/2026: uma linha só (antes o cartão repetia a mensagem dele, que já está inteira no balão logo acima)
+    const aviso = avisoTrabalho ? avisoTrabalho.texto.replace(/\s+/g, ' ').trim() : '';
+    const [oQue, prev] = aviso ? [aviso.replace(/\s*\(([^)]*)\)\.?$/, '').replace(/\.$/, ''), (aviso.match(/\(([^)]*)\)\.?$/) || [])[1]] : [passoLegivel(agora), ''];
+    poe($('#trabalho'), `<div class="cartao-pedido uma-linha"><div class="cp-agora">⏳ ${esc(oQue)} · há ${esc(desde)}${prev ? ` · ${esc(prev.split(',')[0])}` : ''}`
+        + `${aviso && passos.length ? `<small>${esc(passoLegivel(agora))}</small>` : ''}</div></div>`);
+  } else poe($('#trabalho'), esc(sit));
+}
+
+function desenhaChips() {
+  const e = estado(); const temLink = /https?:\/\/\S+/.test($('#caixa').value), vazio = !$('#caixa').value.trim();
+  if (tipoEscolhido && (tipoEscolhido === 'ideia') === temLink) tipoEscolhido = null;
+  // com link, sem escolha: Fomos conferir (19/10/2026, ele: "não está deixando eu enviar quando clico no formato fomos conferir")
+  if (temLink && !tipoEscolhido) { tipoEscolhido = moldeConferir ? 'analisar' : 'igual'; }
+  $('#chips').hidden = !!e.item || vazio;
+  document.querySelectorAll('#chips button').forEach(b => {
+    b.hidden = temLink ? b.dataset.tipo === 'ideia' : b.dataset.tipo !== 'ideia';
+    b.setAttribute('aria-pressed', String(b.dataset.tipo === tipoEscolhido));
+  });
+  $('#molde-conferir').hidden = !temLink;
+  $('#molde-conferir').setAttribute('aria-pressed', String(temLink && tipoEscolhido === 'analisar' && moldeConferir && !formatoAnalise));
+  $('#formato-analise').hidden = !temLink;
+  $('#formato-analise').setAttribute('aria-pressed', String(temLink && tipoEscolhido === 'analisar' && formatoAnalise));
+  $('#dica-tipo').textContent = temLink ? (tipoEscolhido === 'igual' ? 'vai fazer um vídeo igual a este' : formatoAnalise ? 'vai contar o caso com documentos, sem placar (Análise)' : 'vai checar as falas no formato Fomos conferir') : 'aqui é a lista: isto vira uma PAUTA NOVA. Para falar de um vídeo, abra o cartão dele';
+  $('#enviar').disabled = vazio || (!e.item && !tipoEscolhido);
+  $('#caixa').placeholder = e.item ? 'Escreva ou dite…' : 'Cole o link da pauta ou escreva a ideia…';
+}
+
+// 19/10/2026 (ele: "quando tem muito texto não tem como ler o script"): a caixa ia até 45% da tela e espremia o roteiro;
+// agora para em 22% e o texto rola dentro dela
+function crescer() { const c = $('#caixa'); c.style.height = 'auto'; if (!c.value) return;          // vazia: a altura de uma linha (o texto de exemplo não conta)
+  c.style.height = Math.min(c.scrollHeight + 2, innerHeight * .22) + 'px'; }
+
+const VERSAO = document.lastModified;
+let versaoServidor = null;
+let okEm = Date.now();
+async function atualizar() {
+  // 25/10/2026 (medido: 70 KB a cada 2 s): só a etapa que a tela mostra; com um vídeo aberto, só as contagens
+  { const e0 = estado(); try { funil = await api('/api/funil?etapa=' + encodeURIComponent(e0.item ? '' : e0.etapa), {}, 5000); okEm = Date.now(); } catch (e) {} }
+  const atraso = (Date.now() - okEm) / 1000;
+  const limite = avisoVivo ? 25 : 8;          // com os avisos abertos, a pergunta de reserva é a cada 15 s
+  $('#vivo').classList.toggle('caiu', atraso > limite);
+  $('#vivo').textContent = atraso > limite ? 'sem conexão · recarregue' : 'atualizado às ' + new Date(okEm).toTimeString().slice(0, 8);
+  $('#vivo').title = $('#vivo').textContent;
+  if (funil && funil.versao_tela) { if (versaoServidor && versaoServidor !== funil.versao_tela && !gravador && !envios.some(m => m._estado === 'enviando')) location.reload(); versaoServidor = funil.versao_tela; }
+  const e = estado();
+  if (e.item) { try { item = await api(`/api/item/${e.item}`); } catch (er) { if (item && item.ficha.num !== e.item) item = null; } } else item = null;
+  desenhaFunil(); desenhaMeio(); desenhaChat();
+}
+
+async function mandar(m) {
+  m._estado = 'enviando'; desenhaChat();
+  try {
+    if (m.item === 'pauta') {
+      const r = await api('/api/pauta', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: m.id, texto: m.texto, tipo: m.tipo, molde: m.molde || '', formato: m.formato || ''})});
+      m._estado = 'ok'; m.quando = r.quando;
+      envios.push({id: m.id + '-r', item: 'pauta', quem: 'sistema', quando: r.quando,
+        texto: `Pauta #${r.num} criada (${TIPO[m.tipo] || 'Ideia escrita'}${r.molde === 'conferir' ? ', formato Fomos conferir' : ''}). Estou baixando e transcrevendo; o roteiro sai em uns 5 minutos. Toque no cartão para acompanhar.`});
+    } else {
+      // o botão principal apaga na hora em que a mensagem sai (o servidor leva até 2 s para dizer que está trabalhando)
+      if (item && item.ficha && item.ficha.num == m.item) { item.pendentes = (item.pendentes || 0) + 1; ultimoMeio = ''; desenhaMeio(); }
+      const r = await api(`/api/item/${m.item}/mensagem`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: m.id, texto: m.texto, acao: m.acao || ''})});
+      m._estado = 'ok'; m.quando = r.quando;
+    }
+  } catch (er) { m._estado = 'falhou'; }
+  desenhaChat(); atualizar();
+}
+
+// ditado.1 (17/10/2026, #298: dois pedidos ditados foram parar na lista e recusados): o destino é o vídeo da tela na
+// hora em que ele toca em enviar, não na hora em que a transcrição volta (ele tinha tocado nas abas no meio)
+let destinoDitado = null, seguraEnvio = false;
+async function enviar(destino) {
+  // 25/10/2026 (#382): o microfone parou e ele, sem perceber, seguiu falando e tocou em enviar no fim; o 1º toque depois
+  // disso só avisa (o que está na caixa é só o começo); o 2º envia
+  if (seguraEnvio && !gravador) {
+    seguraEnvio = false; regDitado('envio segurado (microfone tinha parado)');
+    alertaChat('Ainda não enviei: o microfone tinha parado no meio, e a caixa tem só o que ouvi até ali. Confira a caixa '
+               + '(ou dite o resto) e toque em enviar de novo.');
+    return;
+  }
+  seguraEnvio = false;
+  // 17/10/2026 ("conserta"; 3 mensagens dele chegaram em dobro): tocar em enviar com o ditado aberto ou conferindo não
+  // manda o texto bruto; espera a transcrição final e manda ELA, uma vez
+  regDitado('enviar');
+  if (gravador) {
+    enviarAoTerminar = true; destinoDitado = estado().item || 'pauta'; $('#enviar').textContent = 'aguarde…';
+    if (gravador.state === 'recording') gravador.stop();
+    return;
+  }
+  const e = estado(); const texto = $('#caixa').value.trim();
+  if (!texto) return;
+  const m = {id: novoId(), item: destino || e.item || 'pauta', quem: 'ele', texto, quando: new Date().toISOString(), tipo: tipoEscolhido,
+    molde: !destino && !e.item && moldeConferir && /https?:\/\/\S+/.test(texto) ? 'conferir' : '',
+    formato: !destino && !e.item && formatoAnalise && /https?:\/\/\S+/.test(texto) ? 'analise' : ''};
+  envios.push(m); $('#caixa').value = ''; guardar(chaveRascunho(), ''); tipoEscolhido = null; moldeConferir = true; formatoAnalise = false; crescer(); desenhaChips();
+  await mandar(m);
+}
+
+// 16/10/2026 (ele: "tinha que ter um botão aí para pedir para o outro agente consertar isso. aí eu clico e já manda uma
+// msg para o agente para ele ajustar"): o botão vira uma mensagem dele no chat, visível e registrada como qualquer outra
+// 18/10/2026 (achado rot.5; ele: "pode consertar isso"): o toque duplo mandava o pedido duas vezes; depois do 1º toque
+// os botões de ajuste ficam desligados até a resposta chegar (ou 8 s, se ela já chegou)
+// (var e function: a tela é desenhada antes desta linha rodar; com let/const dava erro e o botão não aparecia)
+var ajusteEm = null;
+function ajusteTravado() {
+  return !!ajusteEm && ajusteEm.num === estado().item && (Date.now() - ajusteEm.t < 8000
+    || !!(item && (item.pendentes > 0 || item.trabalhando || ['trabalhando no seu pedido', 'animando'].includes(item.ficha.passo))));
+}
+
+var avisosRegua = [];                 // os avisos da régua na faixa de aprovar (o botão Consertar estes avisos)
+async function pedirAjusteAnim() {
+  const cf = item && item.animacao && item.animacao.conferencia; if (!cf) return;
+  ajusteEm = {num: estado().item, t: Date.now()};
+  const op = cf.opiniao || {};
+  // conferência dos Olhos: só o que sobrou (o resto já foi consertado sozinho) e a régua
+  const itens = (cf.quem === 'olhos' ? (cf.sobrou || []).map(x => `${x.t} s: ${x.msg}`)
+    : (op.partes || []).filter(x => x.nota !== 'bom').map(x => `${x.parte} (${x.nota}): ${x.porque}`)
+      .concat(op.nao_fecha || []).concat((op.perderia_atencao || []).map(x => `perderia a atenção em ${x.t} s: ${x.porque}`)))
+    .concat((cf.regua || []).map(x => `régua, ${x.de} s: ${x.tipo} · ${x.msg}`));
+  const texto = 'Ajusta a animação pela conferência, sem mexer no que está bom:\n- ' + itens.join('\n- ');
+  const msg = {id: novoId(), item: estado().item, quem: 'ele', texto, quando: new Date().toISOString()};
+  envios.push(msg); await mandar(msg);
+}
+
+const chaveRascunho = () => { const e = estado(); return 'rascunho-' + (e.item || 'pauta'); };
+
+// 16/10/2026 (ele: "enquanto eu falava no microfone o que estava transcrevendo não ia aparecendo na caixa de texto").
+// 24/10/2026 ("pode ir consertar a parte do chat que envia o audio"; como o ditado do kiteprocess): o texto que aparece
+// enquanto ele fala vem da MESMA transcrição da Groq que fica no fim (antes era o reconhecimento do navegador, fraco no
+// iPhone, trocado no fim). A cada ~1 s vai o áudio do começo até agora (pedaço do meio sozinho não é arquivo de áudio);
+// uma volta no ar por vez; resposta mais velha que a já aplicada não vale; a do fim, que ouviu tudo, vence sempre.
+let gravador = null, pedacos = [], enviarAoTerminar = false, ditadoNoItem = null;
+const detAbertos = new Set();   // os "detalhes" que ele abriu (sobrevivem ao redesenho)
+const ICONE_LIXO = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
+const ICONE_ENVIAR = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M3.4 20.4 21 12 3.4 3.6l-.01 6.53L15 12 3.39 13.87z"/></svg>';
+const pedidoVoz = {};          // voz-com-problema: quando ele tocou em Consertar, por vídeo
+// 17/10/2026 (ele: "se clico em enviar ele não para o ditado", no Chrome; não reproduzi com microfone simulado):
+// instrumento, anota cada passo do ditado no servidor (registro-ditado.jsonl) para ver onde trava
+function regDitado(passo, extra) {
+  try { navigator.sendBeacon('/api/ditado-registro', new Blob([JSON.stringify({passo, gravador: gravador ? gravador.state : null,
+    enviarAoTerminar, chars: $('#caixa').value.length, ...(extra || {})})], {type: 'application/json'})); } catch (e) {}
+}
+async function ditar() {
+  regDitado('toque em ditar');
+  if (gravador) { gravador.stop(); return; }
+  let fluxo;
+  // 19/10/2026 (ele: "não estou conseguindo ativar o microfone"): anota o motivo e diz o que fazer
+  try { fluxo = await navigator.mediaDevices.getUserMedia({audio: true}); } catch (e) {
+    regDitado('microfone recusado', {erro: (e && e.name) + ': ' + (e && e.message), seguro: window.isSecureContext, endereco: location.host});
+    // o aviso do chat fica escondido enquanto ele escreve (19/10: "não consigo clicar no botão"): o próprio botão avisa
+    $('#ditar span').textContent = 'microfone bloqueado'; $('#ditar').classList.add('gravando');
+    setTimeout(() => { $('#ditar span').textContent = ''; $('#ditar').classList.remove('gravando'); }, 5000);
+    alertaChat(e && e.name === 'NotAllowedError'
+      ? 'O navegador não deixou usar o microfone. Toque no cadeado ao lado do endereço, ponha Microfone em Permitir e recarregue a página. No Mac, veja também Ajustes do Sistema > Privacidade e Segurança > Microfone > Chrome ligado.'
+      : e && e.name === 'NotFoundError' ? 'Não achei nenhum microfone ligado neste aparelho.'
+      : 'Não consegui usar o microfone (' + (e && e.name) + ').');
+    return; }
+  const c = $('#caixa'), base = c.value.trim() ? c.value.trim() + ' ' : '';
+  const tipo = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
+  gravador = new MediaRecorder(fluxo, {mimeType: tipo}); pedacos = [];
+  const d = {seq: 0, aplicada: 0, noAr: false, fechado: false, texto: '', vazios: 0, mudo: false};  // este ditado (o anterior não escreve aqui)
+  ditadoNoItem = estado().item;
+  // 25/10/2026 (#382): o microfone que para no meio (o iPhone desliga quando a página mexe em áudio; a faixa fica muda e
+  // o gravador segue mandando pedaços vazios) para o ditado e NÃO envia: o que ouviu fica na caixa, com o aviso
+  const microfoneParou = (porque) => {
+    if (d.mudo || d.fechado || !gravador) return;
+    d.mudo = true; seguraEnvio = true; enviarAoTerminar = false; destinoDitado = null; $('#enviar').innerHTML = ICONE_ENVIAR;
+    regDitado('microfone parou', {porque, bytes: pedacos.reduce((s, x) => s + x.size, 0)});
+    if (gravador.state === 'recording') gravador.stop();
+  };
+  fluxo.getAudioTracks().forEach(tr => { tr.onmute = () => microfoneParou('faixa muda'); tr.onended = () => microfoneParou('faixa acabou'); });
+  const transcreve = async (parcial) => {
+    const r = await fetch('/api/ditar', {method: 'POST', headers: {'Content-Type': tipo, 'X-Parcial': parcial ? '1' : '0'},
+                                          body: new Blob(pedacos, {type: tipo})});
+    const j = await r.json().catch(() => ({erro: 'resposta inválida'}));
+    if (!r.ok) throw new Error(j.erro || ('erro ' + r.status));
+    return j.texto || '';
+  };
+  const mostra = texto => { d.texto = texto; c.value = base + texto; crescer(); desenhaChips(); };
+  gravador.ondataavailable = async ev => {
+    pedacos.push(ev.data);
+    // falando ou em silêncio, meio segundo de áudio tem milhares de bytes (medido: ~12 mil); 3 pedaços quase vazios
+    // seguidos (1,5 s) depois do começo é o microfone desligado (no #382: 38.000 bytes aos 3 s, 38.946 aos 8 s)
+    const total = pedacos.reduce((s, x) => s + x.size, 0);
+    d.vazios = total > 4000 && ev.data.size < 400 ? d.vazios + 1 : 0;
+    if (d.vazios >= 3) { microfoneParou('áudio parou de chegar'); return; }
+    if (d.fechado || d.noAr || gravador === null || gravador.state !== 'recording') return;
+    if (pedacos.reduce((s, x) => s + x.size, 0) < 4000) return;   // o 1º segundo vem só com o cabeçalho: a Groq recusa
+    const s = ++d.seq; d.noAr = true;
+    try { const texto = await transcreve(true); if (!d.fechado && s > d.aplicada && texto) { d.aplicada = s; mostra(texto); } }
+    catch (e) {}                                       // parcial que falha não avisa: a do fim manda o áudio inteiro de novo
+    finally { d.noAr = false; }
+  };
+  gravador.onstop = async () => {
+    regDitado('gravação parou');
+    d.fechado = true;                                  // daqui em diante só a do fim escreve
+    fluxo.getTracks().forEach(t => t.stop());          // o microfone desliga sempre, mesmo se a transcrição falhar
+    $('#ditar').classList.remove('gravando'); $('#ditar span').textContent = 'conferindo…';
+    try { mostra(await transcreve(false)); }
+    catch (e) { alertaChat((d.texto ? 'A transcrição final falhou; ficou o texto parcial. ' : 'O ditado não foi transcrito. ') + e.message); }
+    guardar(chaveRascunho(), c.value); crescer(); desenhaChips();
+    $('#ditar span').textContent = ''; gravador = null; regDitado('transcrição voltou');
+    ultimoMeio = ''; desenhaMeio();                      // o que mudou no vídeo enquanto ele ditava aparece agora
+    if (d.mudo) alertaChat('O microfone parou de ouvir no meio do ditado (o aparelho desligou o microfone). O que ouvi até ali '
+                           + 'ficou na caixa e NÃO foi enviado: toque no microfone, fale o resto e envie.');
+    if (d.mudo) { enviarAoTerminar = false; destinoDitado = null; $('#enviar').innerHTML = ICONE_ENVIAR; }   // nem o toque em enviar logo depois
+    if (enviarAoTerminar) { enviarAoTerminar = false; $('#enviar').innerHTML = ICONE_ENVIAR; const dest = destinoDitado; destinoDitado = null; enviar(dest); }
+  };
+  // 24/10/2026 (ele: "não mostra a palavra aparecendo conforme eu falo"): com fatia de 1 s, a 1ª parcial saía aos ~2 s
+  // e voltava aos ~3,3 s; a frase dele durou 3 s e a parcial chegou depois do fim. Meio segundo: a 1ª sai em ~1 s.
+  gravador.start(500); regDitado('gravando'); $('#ditar').classList.add('gravando'); $('#ditar span').textContent = 'parar';
+}
+
+function alertaChat(t) { envios.push({id: novoId(), item: estado().item || 'pauta', quem: 'sistema', texto: t, quando: new Date().toISOString()}); desenhaChat(); }
+
+async function anexar(arq) {
+  const e = estado(); if (!e.item) { alertaChat('Abra um vídeo para anexar um arquivo a ele.'); return; }
+  const id = novoId();
+  envios.push({id, item: e.item, quem: 'ele', texto: `📎 ${arq.name}`, _estado: 'enviando'}); desenhaChat();
+  try { await api(`/api/item/${e.item}/anexo?nome=${encodeURIComponent(arq.name)}`, {method: 'POST', headers: {'X-Id': id}, body: arq}, 120000); envios = envios.filter(m => m.id !== id); }
+  catch (er) { const m = envios.find(m => m.id === id); if (m) m._estado = 'falhou'; }
+  atualizar();
+}
+
+document.addEventListener('toggle', ev => {
+  if (ev.target.classList && ev.target.classList.contains('opiniao')) opiniaoAberta = ev.target.open;
+  if (ev.target.dataset && ev.target.dataset.no && item) nosAbertos[`${item.ficha.num}:${ev.target.dataset.no}`] = ev.target.open;
+}, true);
+document.addEventListener('click', async ev => {
+  const orig = ev.target.closest('[data-original]');
+  if (orig) { ev.preventDefault(); ev.stopPropagation(); window.open(orig.dataset.original, '_blank', 'noopener'); return; }
+  // tela-do-roteiro (22/10/2026): "abrir todos" no Roteiro (dentro do resumo da linha: não abre nem fecha o Roteiro)
+  const todos = ev.target.closest('[data-abrir-todos]');
+  if (todos && item) {
+    ev.preventDefault(); ev.stopPropagation();
+    const abrir = todos.dataset.abrirTodos === '1';
+    item.blocos.forEach(b => { nosAbertos[`${item.ficha.num}:b${b.n}`] = abrir; });
+    nosAbertos[`${item.ficha.num}:roteiro`] = true; ultimoMeio = ''; desenhaMeio(); return;
+  }
+  if (ev.target.closest('#vivo')) { $('#vivo').classList.toggle('mostra'); return; }
+  if (ev.target.closest('[data-abre-pedido]')) { pedidoAberto = !pedidoAberto; desenhaChat(); return; }
+  const aba = ev.target.closest('[data-painel]');
+  if (aba && item) { const k = `${item.ficha.num}:painel`; nosAbertos[k] = nosAbertos[k] === aba.dataset.painel ? null : aba.dataset.painel; ultimoMeio = ''; desenhaMeio(); return; }
+  if (ev.target.closest('#app.com-arvore #meio .cab b')) { tituloInteiro = !tituloInteiro; ultimoMeio = ''; desenhaMeio(); return; }   // o título inteiro ao tocar
+  // tela-do-roteiro .3: tocar na mensagem do sistema abre e fecha (antes o toque só valia em botão e nunca abria)
+  const dt = ev.target.closest('details.detalhes'); if (dt) { setTimeout(() => dt.open ? detAbertos.add(dt.dataset.det) : detAbertos.delete(dt.dataset.det)); return; }
+  const sis = ev.target.closest('.resp-m.sistema'); if (sis) { sis.classList.toggle('aberto'); return; }
+  const t = ev.target.closest('button,[data-reenviar]'); if (!t) return;
+  if (t.dataset.puloP) { const p = previaJs(); if (p) p.pula(parseFloat(t.dataset.puloP)); return; }
+  if (t.id === 'fechar-previa') { $('#app').classList.remove('assistindo'); const p = previaJs(); if (p) p.pausa(); return; }
+  if (t.id === 'pedir-seg') {
+    const p = previaJs(); if (!p) return; p.pausa();
+    const c = $('#caixa'), base = c.value.trimEnd();
+    c.value = (base ? base + '\n' : '') + `No segundo ${segundo(p.agora())}: `;
+    guardar(chaveRascunho(), c.value); crescer(); desenhaChips(); c.focus(); c.setSelectionRange(c.value.length, c.value.length);
+    return;
+  }
+  if (t.dataset.etapa) { location.hash = '#/etapa/' + encodeURIComponent(t.dataset.etapa); }
+  else if (t.dataset.item) { location.hash = '#/item/' + t.dataset.item; }
+  else if (t.hasAttribute('data-voltar')) { $('#app').classList.remove('assistindo'); location.hash = '#/etapa/' + encodeURIComponent(item ? item.ficha.etapa : 'Pauta'); }
+  else if (t.dataset.reenviar) { const m = envios.find(x => x.id === t.dataset.reenviar); if (m) mandar(m); }
+  else if (t.id === 'molde-conferir') { moldeConferir = true; formatoAnalise = false; tipoEscolhido = 'analisar'; desenhaChips(); }
+  else if (t.id === 'formato-analise') { formatoAnalise = true; moldeConferir = false; tipoEscolhido = 'analisar'; desenhaChips(); }
+  else if (t.dataset.tipo) { tipoEscolhido = t.dataset.tipo; if (t.dataset.tipo === 'igual') { moldeConferir = false; formatoAnalise = false; } desenhaChips(); }
+  else if (t.id === 'fazer-pauta' || t.id === 'descartar-pauta') {
+    const fazer = t.id === 'fazer-pauta';
+    const motivo = fazer ? '' : prompt('Por que descartar? (opcional: o radar usa para aprender)');
+    if (motivo === null) return;
+    t.disabled = true; t.textContent = fazer ? 'mandando fazer…' : 'descartando…';
+    try { await api(`/api/item/${estado().item}/${t.id}`, {method: 'POST', body: JSON.stringify({motivo: motivo || ''})}); }
+    catch (e) { alertaChat((fazer ? 'Não mandou fazer: ' : 'Não descartou: ') + e.message); }
+    if (!fazer) location.hash = '#/etapa/Pauta';
+    atualizar();
+  }
+  else if (t.id === 'gerar-final-de-novo' || t.id === 'tentar-pauta' || t.id === 'baixar-de-novo' || t.dataset.baixar) {
+    const rota = t.id === 'gerar-final-de-novo' ? 'gerar-final-de-novo' : 'tentar-pauta';
+    t.disabled = true; t.textContent = rota === 'tentar-pauta' ? 'baixando de novo…' : 'gerando…';
+    try { await api(`/api/item/${estado().item}/${rota}`, {method: 'POST'}); } catch (e) { alertaChat('Não começou: ' + e.message); }
+    atualizar();
+  }
+  else if (t.id === 'gravar-de-novo') {
+    t.disabled = true; t.textContent = 'gravando…';
+    try { await api(`/api/item/${estado().item}/gravar-voz-de-novo`, {method: 'POST'}); } catch (e) { alertaChat('Não gravou: ' + e.message); }
+    atualizar();
+  }
+  else if (t.classList.contains('travado')) {     // botoes-sempre: o motivo no próprio botão, por 6 s
+    if (!t.dataset.rotulo) t.dataset.rotulo = t.textContent;
+    t.textContent = t.dataset.trava; t.classList.add('mostrando');
+    clearTimeout(t._volta); t._volta = setTimeout(() => { t.textContent = t.dataset.rotulo; t.classList.remove('mostrando'); }, 6000);
+  }
+  else if (t.id === 'montar-proposta') {
+    t.disabled = true; t.textContent = 'montando…';
+    const m = {id: novoId(), item: estado().item, quem: 'ele', texto: 'Monta a proposta de novo com tudo o que eu acrescentei na conversa.', quando: new Date().toISOString()};
+    envios.push(m); mandar(m);
+  }
+  else if (t.id === 'aprovar-direcao') {
+    t.disabled = true; t.textContent = 'aprovando a direção…';
+    const m = {id: novoId(), item: estado().item, quem: 'ele', texto: 'Aprovo a direção.', quando: new Date().toISOString(), acao: 'aprovar-direcao'};
+    envios.push(m); mandar(m);
+  }
+  else if (t.id === 'aprovar') {
+    t.disabled = true; t.textContent = 'aprovando…';
+    try { await api(`/api/item/${estado().item}/aprovar-roteiro`, {method: 'POST'}); } catch (e) { alertaChat('Não aprovou: ' + e.message); }
+    atualizar();
+  }
+  else if (t.id === 'pedir-ajuste-anim' && !ajusteTravado()) { t.disabled = true; pedirAjusteAnim(); }
+  else if (t.id === 'consertar-avisos' && !ajusteTravado() && avisosRegua.length) {
+    t.disabled = true; ajusteEm = {num: estado().item, t: Date.now()};
+    const msg = {id: novoId(), item: estado().item, quem: 'ele', quando: new Date().toISOString(),
+                 texto: 'Conserta só estes avisos da régua, sem mexer no que está bom:\n- ' + avisosRegua.join('\n- ')};
+    envios.push(msg); mandar(msg);
+  }
+  else if (t.id === 'excluir') {
+    if (Date.now() >= excluirAte) {         // 1º toque arma por 8 s, o mesmo botão conta no lugar
+      excluirAte = Date.now() + 8000; t.classList.add('confirma');
+      const conta = () => { const b = document.getElementById('excluir'); if (!b) return;
+        const falta = Math.ceil((excluirAte - Date.now()) / 1000);
+        if (falta <= 0) { b.classList.remove('confirma'); b.innerHTML = ICONE_LIXO; return; }
+        b.textContent = `Excluir? (${falta})`; setTimeout(conta, 250); };
+      conta(); return;
+    }
+    excluirAte = 0; t.disabled = true; t.textContent = 'excluindo…';
+    const etapa = item ? item.ficha.etapa : 'Pauta';
+    try { await api(`/api/item/${estado().item}/excluir`, {method: 'POST'}); location.hash = '#/etapa/' + encodeURIComponent(etapa); }
+    catch (e) { alertaChat('Não excluiu: ' + e.message); t.disabled = false; t.innerHTML = ICONE_LIXO; }
+  }
+  else if (t.id === 'ver-numeros') { verNumeros = !verNumeros; ultimoMeio = ''; desenhaMeio(); if (verNumeros && !numeros[estado().item]) buscarNumeros(false); }
+  else if (t.id === 'atualizar-numeros') buscarNumeros(true);
+  else if (t.id === 'trocar-capa') { verCapas = true; ultimoMeio = ''; desenhaMeio(); }
+  else if (t.id === 'fechar-capas') { verCapas = false; ultimoMeio = ''; desenhaMeio(); }
+  else if (t.id === 'copiar-legenda') {
+    const txt = item && item.animacao && item.animacao.legenda ? item.animacao.legenda.texto : '';
+    try { await navigator.clipboard.writeText(txt); t.textContent = 'copiada ✓'; } catch (e) { t.textContent = 'não copiou'; }
+    setTimeout(() => { t.textContent = 'copiar'; }, 2000);
+  }
+  else if (t.id === 'publicar') {
+    // 16/10/2026 (ele: "depois que clicar no botão tem que publicar"): o primeiro toque pede confirmação por 5 s; o
+    // segundo publica de verdade
+    if (Date.now() >= confirmaAte) {
+      // 16/10 (ele: "por que não funciona o botão publicar?"): a contagem recriava o botão a cada segundo e o 2º toque
+      // que caía nessa troca se perdia; agora o MESMO botão muda o texto no lugar (8, 7, … 1) e volta ao normal
+      confirmaAte = Date.now() + 8000; t.classList.add('confirma');
+      const conta = () => {
+        const b = document.getElementById('publicar'); if (!b) return;
+        const falta = Math.ceil((confirmaAte - Date.now()) / 1000);
+        if (falta <= 0) { b.classList.remove('confirma'); b.textContent = 'Publicar no Instagram e no Facebook'; return; }
+        b.textContent = `Toque de novo para publicar agora (${falta})`; setTimeout(conta, 250);
+      };
+      conta();
+      return;
+    }
+    confirmaAte = 0; t.disabled = true; t.textContent = 'publicando…';
+    try { await api(`/api/item/${estado().item}/publicar`, {method: 'POST'}); } catch (e) { alertaChat('Não publicou: ' + e.message); }
+    atualizar();
+  }
+  else if (t.id === 'aprovar-video') {
+    t.disabled = true; t.textContent = 'aprovando…';
+    try { await api(`/api/item/${estado().item}/aprovar-video`, {method: 'POST', body: JSON.stringify({mesmo_assim: !!t.dataset.mesmoAssim})}); }
+    catch (e) { alertaChat('Não aprovou: ' + e.message); }
+    atualizar();
+  }
+  else if (t.dataset.capa) {
+    t.disabled = true; t.textContent = 'escolhendo…';
+    try { await api(`/api/item/${estado().item}/escolher-capa`, {method: 'POST', body: JSON.stringify({op: +t.dataset.capa})}); verCapas = false; } catch (e) { alertaChat('Não escolheu: ' + e.message); }
+    atualizar();
+  }
+  else if (t.id === 'reabrir-animacao') {
+    t.disabled = true; t.textContent = 'reabrindo…';
+    try { await api(`/api/item/${estado().item}/reabrir-animacao`, {method: 'POST'}, 60000); } catch (e) { alertaChat('Não reabriu: ' + e.message); }
+    atualizar();
+  }
+  else if (t.id === 'voltar-anim') {
+    t.disabled = true; t.textContent = 'voltando…';
+    try { await api(`/api/item/${estado().item}/voltar-animacao`, {method: 'POST'}, 120000); } catch (e) { alertaChat('Não voltou: ' + e.message); }
+    atualizar();
+  }
+  else if (t.id === 'aprovar-voz') {
+    t.disabled = true; t.textContent = 'aprovando…';
+    try { await api(`/api/item/${estado().item}/aprovar-voz`, {method: 'POST'}); } catch (e) { alertaChat('Não aprovou: ' + e.message); }
+    atualizar();
+  }
+  else if (t.dataset.ouvir) {                       // ▶ ouvir bloco N: a voz do começo ao fim daquele bloco
+    const a = document.querySelector('main audio'); if (!a) return;
+    const de = Math.max(0, +t.dataset.ouvir - .3), ate = +t.dataset.ate + .4;
+    const toca = () => { a.currentTime = de; a.play();
+      const para = () => { if (a.currentTime >= ate) { a.pause(); a.removeEventListener('timeupdate', para); } };
+      a.addEventListener('timeupdate', para); };
+    if (a.readyState < 1) { a.addEventListener('loadedmetadata', toca, {once: true}); a.preload = 'auto'; a.load(); } else toca();
+  }
+  else if (t.id === 'aprovar-voz-assim') {
+    t.disabled = true; t.textContent = 'aprovando…';
+    try { await api(`/api/item/${estado().item}/aprovar-voz`, {method: 'POST', body: JSON.stringify({mesmo_assim: true})}); } catch (e) { alertaChat('Não aprovou: ' + e.message); }
+    atualizar();
+  }
+  else if (t.id === 'consertar-voz') {
+    // vira uma mensagem dele no chat, como o "pedir ajuste" da segunda opinião
+    // achado voz-com-problema.1: dois toques viraram dois pedidos (#211, 08:12:28 e 08:12:30); um pedido por 30 s
+    if (Date.now() - (pedidoVoz[estado().item] || 0) < 30000) return;
+    pedidoVoz[estado().item] = Date.now();
+    t.disabled = true; t.textContent = 'pedindo…';
+    const pb =(item && item.voz && item.voz.problemas || []).join(' · ') || item.ficha.erro || '';
+    const msg = {id: novoId(), item: estado().item, quem: 'ele', quando: new Date().toISOString(),
+      texto: `Conserta o problema que a conferência achou na voz: ${pb}. Muda só o necessário no roteiro.`};
+    envios.push(msg); await mandar(msg);
+  }
+  else if (t.id === 'voltar-roteiro') {
+    if (!t.dataset.armado) { t.dataset.armado = '1'; t.textContent = 'toque de novo para voltar ao roteiro';
+      setTimeout(() => { if (document.body.contains(t)) { delete t.dataset.armado; t.textContent = 'voltar ao roteiro'; } }, 6000); return; }
+    t.disabled = true; t.textContent = 'voltando…';
+    try { await api(`/api/item/${estado().item}/voltar-roteiro`, {method: 'POST'}); } catch (e) { alertaChat('Não voltei ao roteiro: ' + e.message); }
+    atualizar();
+  }
+  else if (t.id === 'mais-abaixo') { const c = $('#msgs'); c.scrollTop = c.scrollHeight; maisAbaixo(); }
+  else if (t.id === 'enviar') enviar();
+  else if (t.id === 'ditar') ditar();
+  else if (t.id === 'anexar') $('#arquivo').click();
+});
+addEventListener('message', ev => {
+  // 20/10/2026 ("aprovo o plano previa-de-trabalho"): o play abre grande; a pausa não fecha mais (era o "a tela muda")
+  if (ev.data && ev.data.previa === 'tocando' && !$('#app').classList.contains('assistindo')) {
+    $('#app').classList.add('assistindo');
+    const p = $('.anim-previa'); if (p) p.scrollIntoView({block: 'start'});
+  }
+});
+// a prévia em vídeo (previa-em-video) abre grande no play, como a ao vivo
+document.addEventListener('play', ev => {
+  if (ev.target.id === 'previa-mp4' && !$('#app').classList.contains('assistindo')) {
+    $('#app').classList.add('assistindo');
+    const p = $('.anim-previa'); if (p) p.scrollIntoView({block: 'start'});
+  }
+}, true);
+// os botões −5/−1/+1/+5, o segundo grande e o "✎ pedir" comandam a prévia em vídeo ou a ao vivo
+const previaJs = () => {
+  const v = $('#previa-mp4');
+  if (v) return {pula: d => { v.currentTime = Math.max(0, Math.min(v.duration || 1e9, v.currentTime + d)); },
+                 agora: () => v.currentTime, pausa: () => v.pause()};
+  try { return $('#previa-ifr').contentWindow.__previa; } catch (e) { return null; }
+};
+const segundo = t => t.toFixed(1).replace('.', ',');
+setInterval(() => { const el = $('#prev-t'), p = el && previaJs(); if (p) el.textContent = segundo(p.agora()) + ' s'; }, 150);
+$('#msgs').addEventListener('scroll', maisAbaixo);
+document.addEventListener('pointerdown', ev => { if (gravador) regDitado('dedo encostou', {em: (ev.target.closest('[id]') || {}).id || ev.target.tagName}); });
+$('#arquivo').addEventListener('change', ev => { if (ev.target.files[0]) anexar(ev.target.files[0]); ev.target.value = ''; });
+$('#caixa').addEventListener('input', () => { guardar(chaveRascunho(), $('#caixa').value); crescer(); desenhaChips(); });
+$('#caixa').addEventListener('focus', () => $('#app').classList.add('escrevendo'));
+$('#caixa').addEventListener('blur', () => setTimeout(() => $('#app').classList.remove('escrevendo'), 150));
+$('#caixa').addEventListener('keydown', ev => { if (ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)) enviar(); });
+addEventListener('hashchange', () => { $('#app').classList.remove('assistindo'); verCapas = false; item = null; ultimoMeio = ''; ultimoChat = null; $('#msgs').innerHTML = ''; $('#caixa').value = lerGuardado(chaveRascunho()); tipoEscolhido = null; crescer(); desenhaChips(); $('#meio').scrollTop = 0; atualizar(); });
+$('#caixa').value = lerGuardado(chaveRascunho()); crescer(); desenhaChips();
+// a alça do chat (tela-do-roteiro.6): arrastar muda a altura do roteiro; a fração da tela fica guardada neste aparelho
+(() => {
+  const alca = $('#alca'), raiz = document.documentElement; let arrasto = null;
+  const r = parseFloat(lerGuardado('alca-meio')); if (r > 0) raiz.style.setProperty('--meio-alt', Math.round(r * 1000) / 10 + 'dvh');
+  alca.addEventListener('pointerdown', e => { arrasto = {y: e.clientY, h: $('#meio').getBoundingClientRect().height}; alca.setPointerCapture(e.pointerId); alca.classList.add('arrastando'); e.preventDefault(); });
+  alca.addEventListener('pointermove', e => { if (!arrasto) return;
+    const h = Math.max(120, Math.min(innerHeight - 260, arrasto.h + e.clientY - arrasto.y)); raiz.style.setProperty('--meio-alt', h + 'px'); });
+  const solta = () => { if (!arrasto) return; arrasto = null; alca.classList.remove('arrastando');
+    guardar('alca-meio', String($('#meio').getBoundingClientRect().height / innerHeight)); };
+  alca.addEventListener('pointerup', solta); alca.addEventListener('pointercancel', solta);
+})();
+// 25/10/2026 (plano de melhorias): o servidor avisa quando algo muda (/api/eventos, SSE) e a tela busca na hora; a
+// pergunta periódica fica como reserva (a cada 15 s; a cada 2 s se o aviso cair, até ele voltar)
+let eventos = null, avisoVivo = false;
+function abrirEventos() {
+  if (eventos) eventos.close();
+  if (!window.EventSource) return;
+  const e = estado();
+  eventos = new EventSource('/api/eventos' + (e.item ? '?item=' + e.item : ''));
+  eventos.onopen = () => { avisoVivo = true; };
+  eventos.onmessage = () => atualizar();
+  eventos.onerror = () => { avisoVivo = false; };
+}
+addEventListener('hashchange', abrirEventos);
+let ultimaReserva = 0;
+atualizar(); abrirEventos();
+setInterval(() => { if (!avisoVivo || Date.now() - ultimaReserva > 15000) { ultimaReserva = Date.now(); atualizar(); } }, 2000);
+</script>
+</body>
+</html>

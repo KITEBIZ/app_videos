@@ -1,0 +1,192 @@
+{
+ "_leia": "Contas e hashtags que o radar vigia (ferramentas/radar.py). Editável: acrescente {username, nome, lado} e rode `python3 ferramentas/radar.py --conferir` para confirmar na API. lado: esquerda | imprensa | direita (direita só para comparação, fica fora do top 10 e do aviso). Confirmadas na API em 12/10/2026 (a lista de esquerda do Alexandre, 12/10: felipeneto, lulaoficial, midianinja, hilton_erika, andrejanones, ptbrasil, jones.manoel, rita_von_hunty, mylaura_m, lindberghfarias, gleisihoffmann, guilhermeboulos.oficial, psol50, icl.noticias; todas confirmadas).",
+ "contas": [
+  {
+   "username": "lulaoficial",
+   "nome": "Lula",
+   "lado": "esquerda"
+  },
+  {
+   "username": "janjalula",
+   "nome": "Janja",
+   "lado": "esquerda"
+  },
+  {
+   "username": "ptbrasil",
+   "nome": "PT",
+   "lado": "esquerda"
+  },
+  {
+   "username": "gleisihoffmann",
+   "nome": "Gleisi Hoffmann",
+   "lado": "esquerda"
+  },
+  {
+   "username": "guilhermeboulos.oficial",
+   "nome": "Guilherme Boulos",
+   "lado": "esquerda"
+  },
+  {
+   "username": "andrejanones",
+   "nome": "André Janones",
+   "lado": "esquerda"
+  },
+  {
+   "username": "lindberghfarias",
+   "nome": "Lindbergh Farias",
+   "lado": "esquerda"
+  },
+  {
+   "username": "hilton_erika",
+   "nome": "Erika Hilton",
+   "lado": "esquerda"
+  },
+  {
+   "username": "jandira_feghali",
+   "nome": "Jandira Feghali",
+   "lado": "esquerda"
+  },
+  {
+   "username": "pimenta13br",
+   "nome": "Paulo Pimenta",
+   "lado": "esquerda"
+  },
+  {
+   "username": "padilhando",
+   "nome": "Alexandre Padilha",
+   "lado": "esquerda"
+  },
+  {
+   "username": "randolferodrigues",
+   "nome": "Randolfe Rodrigues",
+   "lado": "esquerda"
+  },
+  {
+   "username": "flaviodino",
+   "nome": "Flávio Dino",
+   "lado": "esquerda"
+  },
+  {
+   "username": "felipeneto",
+   "nome": "Felipe Neto",
+   "lado": "esquerda"
+  },
+  {
+   "username": "jones.manoel",
+   "nome": "Jones Manoel",
+   "lado": "esquerda"
+  },
+  {
+   "username": "manueladavila",
+   "nome": "Manuela d'Ávila",
+   "lado": "esquerda"
+  },
+  {
+   "username": "fernandohaddadoficial",
+   "nome": "Fernando Haddad",
+   "lado": "esquerda"
+  },
+  {
+   "username": "pedrorousseff",
+   "nome": "Pedro Rousseff",
+   "lado": "esquerda"
+  },
+  {
+   "username": "midianinja",
+   "nome": "Mídia Ninja",
+   "lado": "esquerda"
+  },
+  {
+   "username": "brasil_247",
+   "nome": "Brasil 247",
+   "lado": "esquerda"
+  },
+  {
+   "username": "icl.noticias",
+   "nome": "ICL Notícias",
+   "lado": "esquerda"
+  },
+  {
+   "username": "rita_von_hunty",
+   "nome": "Rita von Hunty",
+   "lado": "esquerda"
+  },
+  {
+   "username": "mylaura_m",
+   "nome": "Laura Sabino",
+   "lado": "esquerda"
+  },
+  {
+   "username": "psol50",
+   "nome": "PSOL",
+   "lado": "esquerda"
+  },
+  {
+   "username": "metropoles",
+   "nome": "Metrópoles",
+   "lado": "imprensa"
+  },
+  {
+   "username": "cnnbrasil",
+   "nome": "CNN Brasil",
+   "lado": "imprensa"
+  },
+  {
+   "username": "folhadespaulo",
+   "nome": "Folha de S.Paulo",
+   "lado": "imprensa"
+  },
+  {
+   "username": "estadao",
+   "nome": "Estadão",
+   "lado": "imprensa"
+  },
+  {
+   "username": "uolnoticias",
+   "nome": "UOL Notícias",
+   "lado": "imprensa"
+  },
+  {
+   "username": "globonews",
+   "nome": "GloboNews",
+   "lado": "imprensa"
+  },
+  {
+   "username": "canalmeio",
+   "nome": "Canal Meio",
+   "lado": "imprensa"
+  },
+  {
+   "username": "flaviobolsonaro",
+   "nome": "Flávio Bolsonaro",
+   "lado": "direita"
+  },
+  {
+   "username": "nikolasferreiradm",
+   "nome": "Nikolas Ferreira",
+   "lado": "direita"
+  },
+  {
+   "username": "jairmessiasbolsonaro",
+   "nome": "Jair Bolsonaro",
+   "lado": "direita"
+  },
+  {
+   "username": "michellebolsonaro",
+   "nome": "Michelle Bolsonaro",
+   "lado": "direita"
+  }
+ ],
+ "hashtags": [
+  "lula",
+  "flaviobolsonaro",
+  "eleicoes2026",
+  "segundoturno",
+  "bolsonaro",
+  "fakenews",
+  "stf"
+ ],
+ "a_confirmar": [
+  "g1 (@g1 não respondeu na API: talvez não seja conta comercial)"
+ ]
+}

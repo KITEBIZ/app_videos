@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verdadômetro</title>
+<style>
+@font-face { font-family: "Montserrat"; src: url("montserrat-latin.woff2") format("woff2"); font-weight: 400 900; }
+:root { --fundo: #0a1748; --texto: #f4f6ff; --apagado: #9cbcff; --amarelo: #ffc933; color-scheme: dark; }
+body { margin: 0; background: var(--fundo); color: var(--texto); font: 15px/1.45 Montserrat, system-ui, sans-serif; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 30px; }
+h1 { font-size: 24px; margin: 0; }
+h2 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--amarelo); margin: 0 0 6px; }
+p { margin: 0; color: var(--apagado); max-width: 75ch; }
+.linha { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 10px; }
+.cel { background: radial-gradient(circle at 50% 48%, #1c3fae, #0a1748 80%); border-radius: 12px; padding: 4px; }
+.cel svg { width: 100%; height: auto; display: block; }
+.tela { position: relative; width: 100%; max-width: 300px; aspect-ratio: 1080 / 1920; border-radius: 12px; overflow: hidden; }
+.tela img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tela .st { position: absolute; left: 6%; top: 34%; width: 88%; }
+.tela.limpa { background: radial-gradient(circle at 50% 48%, #1c3fae, #0a1748 80%); }
+.tela .frase { position: absolute; left: 8%; right: 14%; top: 17%; font-weight: 900; font-size: 17px; line-height: 1.2; text-align: center; }
+.tela .frase small { display: block; color: #9cbcff; font-size: 11px; letter-spacing: .1em; margin-bottom: 6px; }
+.tela .fonte { position: absolute; left: 8%; right: 14%; top: 74%; color: #9cbcff; font-size: 10px; text-align: center; }
+.contexto { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 300px)); gap: 14px; margin-top: 10px; }
+button { min-height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--amarelo); background: transparent; color: var(--amarelo); font: inherit; font-weight: 700; cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <h1>Verdadômetro · estudo</h1>
+    <p>O escolhido. O símbolo do Instituto vira medidor; embaixo, o nome do Instituto nas cores do logo (INSTITUTO em lilás, <b style="color:#009c3b">b</b><b style="color:#ffdf00">r</b><b>360</b>). Nada disso está no estúdio ainda.</p>
+    <button type="button" id="tocar" style="align-self:flex-start">▶ Ver as animações de novo</button>
+  </header>
+
+  <section><h2>Como a palavra aparece · 1 pílula (agora) · 2 faixa atravessando o círculo · 3 palavra grande na cor</h2>
+    <div class="linha" id="estilos"></div></section>
+  <section><h2>Os vereditos da Checagem</h2>
+    <div class="linha" id="l3"></div></section>
+
+  <section><h2>No vídeo: a tela do veredito (frases de exemplo)</h2>
+    <div class="contexto" id="ctx"></div></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>
+// as 24 bolinhas do símbolo (instituto/site/marca/favicon.svg), de x 0 a 582, y 0 a 308; a ordem vai da esquerda para a direita
+const SIMB = [[141,287,'#ff4d5e'],[81,287,'#ff4d5e'],[21,287,'#ff4d5e'],[37,195,'#ff4d5e'],[102,196,'#ff4d5e'],[170,199,'#ff4d5e'],
+  [84,113,'#9cbcff'],[160,123,'#9cbcff'],[156,53,'#9cbcff'],[245,144,'#9cbcff'],[244,82,'#9cbcff'],[244,21,'#9cbcff'],
+  [338,21,'#ffc933'],[338,82,'#ffc933'],[337,144,'#ffc933'],[426,53,'#ffc933'],[422,123,'#ffc933'],[498,113,'#ffc933'],
+  [412,199,'#ffc933'],[480,196,'#ffc933'],[545,195,'#ffc933'],[441,287,'#ffc933'],[501,287,'#ffc933'],[561,287,'#ffc933']];
+const ORDEM = SIMB.map((p, i) => [p[0], i]).sort((a, b) => a[0] - b[0]).map(x => x[1]);   // da esquerda para a direita
+const V = {VERDADE: ['#3ddc84', 1], CONFIRMADO: ['#3ddc84', 1], ERRADO: ['#ff4d5e', 0], 'SEM PROVA': ['#8a94b8', -1],
+           EXAGERO: ['#ff9f43', .5], PREVISÃO: ['#b9a6ff', -2]};
+const PALAVRAS = ['VERDADE', 'ERRADO', 'EXAGERO', 'SEM PROVA', 'PREVISÃO'];
+const branco = '#F4F6FF';
+function pilula(palavra, cor, y, larg = 470) {
+  const tam = Math.min(76, (larg - 70) / (palavra.length * .74));
+  return `<g class="pil"><rect x="${300 - larg / 2}" y="${y}" width="${larg}" height="118" rx="59" fill="${cor}"/>
+    <text x="300" y="${y + 59 + tam * .36}" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="${tam}" letter-spacing="2" fill="#0a1748">${palavra}</text></g>`;
+}
+function simbolo(cx, cy, larg, corDe, cls = 'sb') {
+  const k = larg / 582;
+  return SIMB.map(([x, y, c], i) => `<circle class="${cls}" data-i="${i}" cx="${(cx - larg / 2 + x * k).toFixed(1)}" cy="${(cy - 154 * k + y * k).toFixed(1)}" r="${(21 * k).toFixed(1)}" fill="${corDe(i, c)}"/>`).join('');
+}
+const nomeLogo = (y) => `<text x="300" y="${y}" text-anchor="middle" font-family="Montserrat" font-weight="900">
+  <tspan font-size="29" letter-spacing="6" fill="#b8c2e6">INSTITUTO </tspan><tspan font-size="56" fill="#009c3b">b</tspan><tspan font-size="56" fill="#ffdf00">r</tspan><tspan font-size="56" fill="#eef1fb">360</tspan></text>`;
+const nome = (y, cor = branco) => `<text x="300" y="${y}" text-anchor="middle" font-family="Montserrat" font-weight="800" font-size="22" letter-spacing="7" fill="${cor}" opacity=".9">INSTITUTO BR360</text>`;
+
+// 1 · selo de bolinhas
+function selo1(p) {
+  const [cor] = V[p]; let aro = '';
+  for (let i = 0; i < 44; i++) { const a = i / 44 * Math.PI * 2 - Math.PI / 2;
+    aro += `<circle class="ar" cx="${(300 + 210 * Math.cos(a)).toFixed(1)}" cy="${(250 + 210 * Math.sin(a)).toFixed(1)}" r="9" fill="${cor}"/>`; }
+  return `<svg viewBox="0 0 600 500"><g transform="rotate(-6 300 250)">
+    <circle cx="300" cy="250" r="186" fill="${cor}" fill-opacity=".12" stroke="${cor}" stroke-width="4"/>${aro}
+    ${simbolo(300, 128, 150, (i, c) => c)}${pilula(p, cor, 192)}${nome(352, cor)}</g></svg>`;
+}
+// 2 · plenário que vota
+function selo2(p) {
+  const [cor, f] = V[p];
+  const corDe = (i) => f === -1 ? '#3a4a86' : f === -2 ? cor : f === 1 ? cor : f === 0 ? cor : (ORDEM.indexOf(i) < 12 ? '#ff9f43' : '#3ddc84');
+  return `<svg viewBox="0 0 600 500"><g>${simbolo(300, 150, 400, corDe)}${pilula(p, f === -1 ? '#8a94b8' : cor, 268, 440)}${nome(430)}</g></svg>`;
+}
+// 3 · verdadômetro: acende da esquerda até o nível; ponteiro no nível
+function selo3(p, estilo = 'pilula') {
+  const [cor, f] = V[p], nivel = f === 1 ? 24 : f === .5 ? 13 : f === 0 ? 4 : 0;
+  const escala = (i) => { const pos = ORDEM.indexOf(i); return pos < 8 ? '#ff4d5e' : pos < 16 ? '#ff9f43' : '#3ddc84'; };
+  const corDe = (i) => ORDEM.indexOf(i) < nivel ? escala(i) : '#2a3d86';
+  const ang = (f === -1 || f === -2) ? -90 : -180 + 180 * (nivel - .5) / 24;
+  const corAro = f === -1 ? '#8a94b8' : cor;
+  // 16/10 (ele: "deveria ter uma linha, um círculo em volta"): disco escuro com aro na cor do veredito, para ler em
+  // cima de qualquer fundo (vídeo, foto); o PNG sai com o fundo transparente
+  const corP = f === -1 ? '#8a94b8' : cor;
+  // a palavra (16/10, ele: "pode ajustar a forma que a palavra aparece"): pílula, faixa que atravessa o círculo (como a
+  // imagem de carimbo que ele mandou) ou a palavra grande na cor, sublinhada
+  const tamF = Math.min(88, 500 / (p.length * .76));
+  const faixa = estilo !== 'faixa' ? '' : `<g class="pil"><rect x="-22" y="294" width="644" height="108" rx="14" fill="${corP}"/>
+      <rect x="-10" y="305" width="620" height="86" rx="8" fill="none" stroke="#0a1748" stroke-width="3" opacity=".5"/>
+      <text x="300" y="${348 + tamF * .36}" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="${tamF}" letter-spacing="4" fill="#0a1748">${p}</text></g>`;
+  const tamL = Math.min(104, 470 / (p.length * .74));
+  const palavra = estilo === 'faixa' ? '' : estilo === 'letra'
+    ? `<g class="pil"><text x="300" y="384" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="${tamL}" letter-spacing="2" fill="${corP}">${p}</text>
+       <rect x="${300 - p.length * tamL * .37}" y="400" width="${p.length * tamL * .74}" height="10" rx="5" fill="${corP}"/></g>`
+    : pilula(p, corP, 292, 440);
+  return `<svg viewBox="${estilo === 'faixa' ? '-40 -20 680 580' : '0 -20 600 580'}" xmlns="http://www.w3.org/2000/svg"><g>
+    <circle class="disco" cx="300" cy="270" r="282" fill="#0a1748" fill-opacity=".94" stroke="${corAro}" stroke-width="10"/>
+    <circle cx="300" cy="270" r="264" fill="none" stroke="${corAro}" stroke-width="2.5" opacity=".7"/>
+    <g class="miolo" transform="${estilo === 'faixa' ? 'translate(300 250) scale(.80)' : 'translate(300 272) scale(.84)'} translate(-300 -275)">
+    ${simbolo(300, 150, 400, corDe)}
+    <g class="pont" transform="rotate(${ang + 90} 300 270)"><polygon points="292,270 308,270 300,120" fill="${branco}"/><circle cx="300" cy="270" r="16" fill="${branco}"/></g>
+    ${palavra}${nomeLogo(estilo === 'faixa' ? 524 : 470)}</g>${faixa}</g></svg>`;
+}
+const cel = h => `<div class="cel">${h}</div>`;
+document.getElementById('estilos').innerHTML = [['1', 'pilula'], ['2', 'faixa'], ['3', 'letra']].flatMap(([n, e]) =>
+  ['ERRADO', 'VERDADE'].map(p => `<div><b style="color:var(--amarelo)">${n}</b>${cel(selo3(p, e))}</div>`)).join('');
+document.getElementById('l3').innerHTML = ['VERDADE', 'EXAGERO', 'ERRADO', 'SEM PROVA'].map(p => cel(selo3(p, 'faixa'))).join('');
+document.getElementById('ctx').innerHTML = [['EXAGERO', selo3('EXAGERO', 'faixa')], ['ERRADO', selo3('ERRADO', 'faixa')], ['VERDADE', selo3('VERDADE', 'faixa')]]
+  .map(([n, s], k) => `<div style="display:flex;flex-direction:column;gap:6px"><b style="color:var(--amarelo)">${n}</b><div class="tela limpa">
+    <div class="frase"><small>ELE DISSE</small>${['"São 50 milhões de votos"', '"O Brasil cresceu 10%"', '"O salário mínimo subiu"'][k]}</div>
+    <div class="st">${s}</div><div class="fonte">Fonte: TSE · IBGE (exemplo)</div></div></div>`).join('');
+
+function animar() {
+  document.querySelectorAll('svg').forEach((svg, k) => {
+    const tl = gsap.timeline({delay: (k % 5) * .15});
+    const ar = svg.querySelectorAll('.ar'), sb = [...svg.querySelectorAll('.sb')].sort((a, b) => ORDEM.indexOf(+a.dataset.i) - ORDEM.indexOf(+b.dataset.i));
+    if (ar.length) tl.from(ar, {scale: 0, transformOrigin: '50% 50%', duration: .18, stagger: .012, ease: 'back.out(3)'});
+    tl.from(sb, {scale: 0, transformOrigin: '50% 50%', duration: .2, stagger: .025, ease: 'back.out(3)'}, ar.length ? '-=.3' : 0);
+    const pont = svg.querySelector('.pont'); if (pont) tl.from(pont, {rotation: -90, svgOrigin: '300 270', duration: .5, ease: 'back.out(1.6)'}, '-=.2');
+    tl.from(svg.querySelectorAll('.pil'), {scale: 2.4, opacity: 0, transformOrigin: '50% 50%', duration: .2, ease: 'power4.in'}, '-=.1')
+      .to(svg.querySelectorAll('.pil'), {scale: 1.05, transformOrigin: '50% 50%', duration: .06, yoyo: true, repeat: 1});
+  });
+}
+document.getElementById('tocar').addEventListener('click', animar);
+if (window.gsap) animar();
+</script>
+</body>
+</html>

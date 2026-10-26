@@ -1,0 +1,46 @@
+# Histórico do CÓDIGO do estúdio (23/10/2026, "aprovo o plano historico-e-testes"). Fica de fora o que não é código:
+# os vídeos (cada um já tem o seu histórico dentro da pasta), segredos, e dados e registros que mudam sozinhos.
+
+# os vídeos e o que eles geram
+/videos/
+/referencias/
+
+# segredos (nunca no histórico)
+/publicador/.env*
+*.env
+.env*
+
+# dados e registros que mudam sozinhos
+/publicador/enviados/
+/publicador/comentarios/
+/publicador/*.jsonl
+/publicador/*.log
+/publicador/METRICAS.md
+/radar/*
+!/radar/contas.json
+/em_alta/
+/diagnostico/
+/olho/
+*.log
+/*.jsonl
+/limite.json
+/saude.json
+/saude-avisos.json
+/calibracao.json
+
+# gravações grandes de referência dos testes e saídas de teste
+/testes/referencias/
+/testes/tela_igual/
+/testes/prints/
+/testes/navegar/
+/testes/sombra-resultado.jsonl
+
+# cópias antigas e lixo de execução
+/estudio-v2/
+__pycache__/
+*.pyc
+.venv
+
+# sons que ele vetou (24/10/2026, "eles são ruins"): ficam no Mac, fora do código e da VPS
+/web/sons/fora/
+/regras/.propostas/

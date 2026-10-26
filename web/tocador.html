@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prévia #{{NUM}}</title>
+<base href="/item/{{NUM}}/">
+<style>
+/* Tocador da prévia da v2 (16/10/2026, "aprovo o plano v2-parte3-animacao"): palco 1080x1920 escalado para a tela,
+   controles embaixo. A animação vem de animacao/cena.html (o animador escreve); o tocador põe o fundo, a legenda,
+   o áudio e o tempo dos trechos de vídeo. ?cru=1: sem escala e sem controles (a régua e os quadros medem assim). */
+:root { --fundo: #05081a; --texto: #f4f6ff; --apagado: #9cbcff; --destaque: #ffc933; color-scheme: dark; }
+@font-face { font-family: "Montserrat"; src: url("/fontes/montserrat-latin.woff2") format("woff2"); font-weight: 400 900; }
+@font-face { font-family: "Impact"; src: url("/fontes/impact.ttf") format("truetype"); }
+html, body { height: 100%; margin: 0; background: var(--fundo); color: var(--texto); font: 15px/1.4 system-ui, sans-serif; }
+body { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 10px 16px; box-sizing: border-box; }
+#moldura { position: relative; flex: 1; width: 100%; min-height: 0; display: flex; justify-content: center; }
+#escala { position: relative; width: 1080px; height: 1920px; transform-origin: top left; }
+#root { position: absolute; inset: 0; overflow: hidden; background: #0a1748; }
+#root svg text { font-family: "Montserrat", sans-serif; }
+#root .im, #root .im text { font-family: "Impact", sans-serif !important; }
+#cena, #legenda { position: absolute; inset: 0; }
+#legenda { pointer-events: none; }
+#controles { width: 100%; max-width: 520px; display: flex; align-items: center; gap: 12px; }
+#tocar { background: var(--destaque); color: #0a1748; border: 0; border-radius: 999px; padding: 10px 18px; font-weight: 800; cursor: pointer; }
+#barra { flex: 1; min-width: 0; accent-color: var(--destaque); }
+#tempo { font-variant-numeric: tabular-nums; color: var(--apagado); min-width: 7ch; text-align: right; }
+body.cru { padding: 0; display: block; }
+/* ?mini=1 (16/10/2026, a prévia pequena da tela de Animação): sem controles; tocar no vídeo toca e pausa; barrinha fina */
+body.mini { padding: 0; gap: 0; }
+/* 16/10/2026 (ele: "quando eu paro não tem como voltar [...] como voltar ou avançar"): na prévia pequena os controles
+   ficam por cima da parte de baixo do vídeo: voltar 5 s, a linha do tempo para arrastar, avançar 5 s e o tempo */
+body.mini #controles { position: fixed; left: 0; right: 0; bottom: 4px; z-index: 7; max-width: none; gap: 4px; padding: 4px 6px;
+  background: linear-gradient(transparent, rgba(5,8,26,.85) 35%); box-sizing: border-box; }
+/* 20/10/2026 (ele: "quando dou play não tem o botão pause"): tocando, o círculo some para não tapar o vídeo e o
+   Tocar/Pausar fica na barra de baixo, pequeno como os de pular */
+body.mini #tocar { font-size: 10px; padding: 3px 8px; flex: none; }
+body.mini #tempo { font-size: 10px; min-width: 4ch; }
+.pulo { display: none; background: rgba(255,201,51,.92); color: #0a1748; border: 0; border-radius: 999px; font-weight: 800;
+  font-size: 10px; padding: 3px 6px; cursor: pointer; flex: none; }
+body.mini .pulo { display: inline-block; }
+#capa-toque { display: none; }
+body.mini #capa-toque { display: flex; position: fixed; inset: 0 0 34px 0; align-items: center; justify-content: center; cursor: pointer; z-index: 5; }
+body.mini #capa-toque span { width: 46px; height: 46px; border-radius: 50%; background: rgba(255,201,51,.92); color: #0a1748;
+  display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 2px 10px #0008; }
+body.mini.tocando #capa-toque span { opacity: 0; }
+#fio { display: none; } body.mini #fio { display: block; position: fixed; left: 0; bottom: 0; height: 4px; background: var(--destaque); width: 0; z-index: 6; }
+body.cru #moldura { display: block; } body.cru #controles { display: none; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="/pecas/verdadometro.js"></script>
+<script src="/pecas/assinatura.js"></script>
+<script src="/pecas/take.js"></script>
+<script src="/pecas/seguir.js"></script>
+<script src="/pecas/fotos.js"></script>
+<script src="/pecas/documento.js"></script>
+<script src="/pecas/carimbos.js"></script>
+<script src="/pecas/fecho.js"></script>
+<script src="/pecas/plenario.js"></script>
+<script src="/pecas/brasil-uf.js"></script>
+<script src="/pecas/colagem.js"></script>
+<script src="/pecas/numeros.js"></script>
+</head>
+<body>
+<div id="moldura"><div id="escala"><div id="root" data-composition-id="main" data-start="0" data-duration="{{DUR}}" data-width="1080" data-height="1920">
+<svg id="fundo" width="1080" height="1920" viewBox="0 0 1080 1920" style="position:absolute;inset:0"><!-- o fundo da v1 (newsbr360.fundo, regras/IDENTIDADE.md) -->
+<defs><radialGradient id="gfundo" cx="50%" cy="48%" r="80%"><stop offset="0" stop-color="#1c3fae"/><stop offset="1" stop-color="#0a1748"/></radialGradient>
+<filter id="tinta" x="-10%" y="-30%" width="120%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" result="r"/><feColorMatrix in="r" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.4 1.55" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in"/></filter></defs>
+<rect x="0" y="0" width="1080" height="1920" fill="url(#gfundo)"/>
+<g id="fundo-faixas" fill="#ffffff" opacity=".045"><rect x="-300" y="-400" width="160" height="2800" transform="rotate(24 540 960)"/><rect x="200" y="-400" width="90" height="2800" transform="rotate(24 540 960)"/><rect x="620" y="-400" width="220" height="2800" transform="rotate(24 540 960)"/><rect x="1100" y="-400" width="120" height="2800" transform="rotate(24 540 960)"/></g>
+</svg>
+<div id="cena">
+{{CENA}}
+</div>
+<svg id="legenda" width="1080" height="1920" viewBox="0 0 1080 1920"></svg>
+<div id="capa-abre" style="position:absolute;inset:0;display:none">{{CAPA}}</div>
+</div></div></div>
+<div id="controles"><button id="tocar" type="button">▶ Tocar</button>
+<button class="pulo" type="button" data-pulo="-5" aria-label="Voltar 5 segundos">⟲5</button>
+<input id="barra" type="range" min="0" max="{{DUR}}" step="0.01" value="0" aria-label="Posição na prévia">
+<button class="pulo" type="button" data-pulo="5" aria-label="Avançar 5 segundos">5⟳</button>
+<span id="tempo">0,0 s</span></div>
+<div id="capa-toque" aria-label="Tocar ou pausar a prévia" role="button"><span>▶</span></div><div id="fio"></div>
+<audio id="som" src="narracao/completo.mp3?v={{VERSAO}}" preload="auto"></audio>
+<script>
+(async function () {
+  // 20/10/2026 (ele: "porque não acerta a animação de primeira?"): a cena montava antes de a Impact e a Montserrat
+  // carregarem; o GSAP media o texto com a fonte de reserva e o "pulo" (scale com transformOrigin) empurrava a palavra
+  // para a esquerda, cortando a primeira letra (#304: "CUSAÇÃO GRAVE"). Agora espera as fontes (no máximo 3 s).
+  await Promise.race([Promise.all([document.fonts.load('60px Impact'), document.fonts.load('900 60px Montserrat')]).catch(() => {}),
+                      new Promise(r => setTimeout(r, 3000))]);
+  const DADOS = {{DADOS}};
+  window.TAMANHOS = DADOS.tamanhos || {};     // o tamanho real de cada imagem da cena (a peça de fotos, 25/10/2026)
+  const render = /[?&]render=1/.test(location.search);
+  const cru = render || /[?&]cru=1/.test(location.search);
+  if (cru) document.body.classList.add('cru');
+  const mini = /[?&]mini=1/.test(location.search);
+  let avisado = false;       // a tela do estúdio amplia a prévia enquanto ela toca (16/10/2026, pedido dele)
+  if (mini) document.body.classList.add('mini');
+  const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w]/g, '');
+  // T: o que o animador usa para pôr cada coisa no tempo da fala
+  const T = window.T = {
+    dur: DADOS.duracao, blocos: DADOS.blocos, palavras: DADOS.palavras,
+    bloco: n => DADOS.blocos.find(b => b.n === n) || {ini: 0, fim: 0},
+    // instante em que a k-ésima palavra que começa com `alvo` é dita no bloco n (sem achar: o começo do bloco)
+    palavra(n, alvo, k = 1) {
+      const b = T.bloco(n), a = norm(alvo);
+      const ws = DADOS.palavras.filter(w => w[0] >= b.ini - 0.15 && w[0] <= b.fim + 0.15 && norm(w[2]).startsWith(a));
+      return ws.length >= k ? ws[k - 1][0] : b.ini;
+    },
+  };
+  // sons (16/10/2026, "aprovo o plano v2-som"): o animador marca o som de cada peça com T.som('carimbo', instante);
+  // volumes da v1 (newsbr360.REGRAS_SOM). A prévia toca os efeitos e a trilha da v1 por baixo da voz.
+  const VOL_SOM = {'carimbo': .85, 'click-soft': .34, 'pop': .32, 'impact-bass-2': .40, 'impact-bass-1': .40, 'chime': .30,
+                   'ping': .30, 'whoosh-short': .12, 'typing': .25, 'sparkle': .30,
+                   // a colagem (24/10/2026, ele: "pegar uma biblioteca de sons e manter no projeto"; gerados na fal, web/sons/CREDITS.md)
+                   'papel-rasga': .50, 'fita': .45, 'maquina': .35, 'impacto-doc': .70};
+  const SONS = window.SONS = window.SONS || [];
+  // 24/10/2026 (ele: "tem um som chiado ainda"): o mesmo som não volta em menos de 0,6 s (o plenário dava um pop por
+  // cadeira) e nada toca a menos de 0,3 s de outro efeito (101 efeitos em 62 s viravam um chiado só)
+  const _somPerto = (nome, t) => SONS.some(s => (s.som === nome && Math.abs(s.t - t) < .6) || Math.abs(s.t - t) < .3);
+  T.som = (nome, t, vol) => { if (nome !== 'impacto-doc' && _somPerto(nome, +t)) return t; if (VOL_SOM[nome] != null && t >= 0) SONS.push({som: nome, t: +t, vol: vol ?? VOL_SOM[nome]}); return t; };
+  const tl = gsap.timeline({paused: true});
+  window.__timelines = {main: tl};
+  // o selo do veredito (16/10/2026, "aprovo o plano v2-verdadometro"): T.selo('ERRADO', instante, {cx, cy, larg, sai})
+  // T.selos: cada selo que o vídeo usou, na ordem (19/10/2026: o placar do T.fecho conta daqui e bate com os carimbos)
+  // T.esperaSelos (19/10/2026; ele: "em geral analisamos uma fala de cada vez"): enquanto QUALQUER selo está na tela
+  // (do instante dele até o `sai`), T.fotos e T.documento que pedirem para entrar esperam ele começar a sair
+  T.selos = []; T._janelasSelos = [];
+  T.esperaSelos = t => { for (const [a, b] of T._janelasSelos) if (t >= a && t < b) return b; return t; };
+  T.selo = (palavra, t, o) => {
+    T.selos.push({palavra: T.chave ? T.chave(palavra) : palavra, t: +t});     // o placar conta pela chave, em qualquer idioma
+    if (o && o.sai != null && !o.junto) T._janelasSelos.push([+t - .05, +o.sai]);
+    return window.Verdadometro.por(document.getElementById('cena'), tl, T, palavra, t, o);
+  };
+  // a assinatura (16/10/2026, "aprovo o plano v2-assinatura"): chamada por último em montar, depois da última fala;
+  // o vídeo passa a durar até ela terminar (a voz acaba antes; a música e os sons seguem)
+  let fimExtra = 0;
+  T.assinatura = (t) => { const fim = window.Assinatura.por(document.getElementById('cena'), tl, T, t ?? DADOS.duracao + .2); fimExtra = Math.max(fimExtra, fim); return fim; };
+  // take com crédito e locutor (17/10/2026, "aprovo o plano pecas-take-e-locutor"): T.take({ini, fim, corte, rotulo,
+  // credito, eleDisse, foco, zoom, filtro}) e T.locutor(instante, duração)
+  T.TAKE = window.Take.TAKE;
+  T.rostos = DADOS.rostos || {};
+  T.rostosTodos = DADOS.rostos_todos || {};   // 24/10/2026: todos os rostos de cada take (borrar: 'outros')
+  T.tarjas = DADOS.tarjas || {};      // conferir-o-pedido-e-faixa-preta: [cima, baixo] da tarja preta de cada vídeo (a peça de take corta)
+  // idioma-do-video (22/10/2026, "aprovo o plano idioma-do-video"): os textos fixos das peças no idioma do vídeo
+  // (DADOS.idioma, da linha "Idioma:" do ROTEIRO.md). T.t(texto) traduz o que estiver na lista; T.chave(palavra) volta o
+  // veredito escrito no idioma do vídeo ("SIN PRUEBAS") à chave do Verdadômetro ("SEM PROVA"), que dá a cor e o nível
+  T.idioma = DADOS.idioma || 'pt';
+  const TEXTOS = {
+    es: {'ELE DISSE': 'ÉL DIJO', 'ELA DISSE': 'ELLA DIJO', 'PLACAR': 'MARCADOR', 'MANDA PARA QUEM': 'MÁNDALO A QUIEN',
+         'AINDA ESTÁ EM DÚVIDA': 'TODAVÍA TIENE DUDAS', 'RESPONDE NOS COMENTÁRIOS': 'RESPONDE EN LOS COMENTARIOS',
+         'Siga o perfil': 'Sigue el perfil', 'para a próxima checagem': 'para la próxima verificación',
+         'FATO, ': 'HECHO, ', 'FONTE ': 'FUENTE ', 'E PONTO': 'Y PUNTO',
+         'VERDADE': 'VERDAD', 'MEIA-VERDADE': 'MEDIA VERDAD', 'EXAGERO': 'EXAGERADO', 'ERRADO': 'ERRÓNEO', 'FALSO': 'FALSO',
+         'SEM PROVA': 'SIN PRUEBAS', 'CONFIRMADO': 'CONFIRMADO', 'PREVISÃO': 'PREVISIÓN', 'OPINIÃO': 'OPINIÓN',
+         'ANÁLISE': 'ANÁLISIS', 'CHECAGEM': 'VERIFICACIÓN'},
+    en: {'ELE DISSE': 'HE SAID', 'ELA DISSE': 'SHE SAID', 'PLACAR': 'SCOREBOARD', 'MANDA PARA QUEM': 'SEND THIS TO',
+         'AINDA ESTÁ EM DÚVIDA': 'ANYONE STILL IN DOUBT', 'RESPONDE NOS COMENTÁRIOS': 'ANSWER IN THE COMMENTS',
+         'Siga o perfil': 'Follow the profile', 'para a próxima checagem': 'for the next fact-check',
+         'FATO, ': 'FACT, ', 'FONTE ': 'SOURCE ', 'E PONTO': 'PERIOD',
+         'VERDADE': 'TRUE', 'MEIA-VERDADE': 'HALF-TRUE', 'EXAGERO': 'EXAGGERATED', 'ERRADO': 'WRONG', 'FALSO': 'FALSE',
+         'SEM PROVA': 'NO EVIDENCE', 'CONFIRMADO': 'CONFIRMED', 'PREVISÃO': 'PREDICTION', 'OPINIÃO': 'OPINION',
+         'ANÁLISE': 'ANALYSIS', 'CHECAGEM': 'FACT-CHECK'}};
+  T.t = s => (TEXTOS[T.idioma] || {})[s] || s;
+  T.chave = p => { for (const l of Object.values(TEXTOS)) for (const [k, v] of Object.entries(l)) if (v === p) return k; return p; };       // enquadramento-automatico (22/10/2026): o rosto de cada take, achado pelo detector
+  // 24/10/2026 (#373: com corte: tCapa - off2 e {...SGT}, a medida dos rostos lia o texto da cena e perdia os takes): cada
+  // take de verdade, com o vídeo e o corte já calculados, para o estúdio medir o rosto certo (animacao.takes_da_cena)
+  T._takes = [];
+  T.take = (o) => { T._ocupado.push([+o.ini, +o.fim]); T._takes.push({src: o.src || 'referencia/video.mp4', corte: +o.corte || 0, dura: (+o.fim) - (+o.ini),
+                   janela: !!(o.janela || o.cheia === false)}); return window.Take.take(document.getElementById('cena'), tl, T, o); };
+  T.locutor = (t, dur) => window.Take.locutor(document.getElementById('cena'), tl, T, t ?? .3, dur ?? 3);
+  // convite para seguir (18/10/2026, "aprovo o plano peca-seguir"): T.seguir(instante), uns 2,6 s
+  // 19/10/2026 (#302: o convite caía no meio da fala do Boulos, 13-15 s): T.seguir só anota o pedido; depois do
+  // montar, cada convite vai para a primeira brecha livre a partir do instante pedido (sem take de outra pessoa nem
+  // carimbo na tela); sem brecha até o fim, não entra
+  T._seguirPedidos = []; T._ocupado = [];
+  T.seguir = (t) => { T._seguirPedidos.push(+t); return +t + window.Seguir.DURACAO; };
+  T._resolverSeguir = () => {
+    const D = window.Seguir.DURACAO, fim = DADOS.duracao;
+    const ocup = T._ocupado.concat(T._janelasSelos, T.selos.map(s => [s.t - .05, s.t + 2.5]));
+    const livre = a => !ocup.some(([x, y]) => a < y && a + D > x);
+    let ultimo = -99;
+    for (const pedido of T._seguirPedidos.sort((a, b) => a - b)) {
+      let t = Math.max(pedido, ultimo + D + 1);
+      while (t + D <= fim && !livre(t)) {
+        const bloqueio = ocup.filter(([x, y]) => t < y && t + D > x).map(([, y]) => y);
+        t = Math.max(...bloqueio) + .1;
+      }
+      // 22/10/2026 (editor-327; os Olhos no #327: o convite "sobrepõe a fala"): entra no começo de uma frase da legenda
+      // (até 1,5 s depois da brecha), não no meio dela; sem começo de frase livre por perto, fica onde estava
+      const frase = (DADOS.legenda || []).map(s => s.ini).find(x => x >= t - .05 && x <= t + 1.5 && livre(x - .05));
+      if (frase !== undefined) t = Math.max(t, frase - .05);
+      if (t + D <= fim + .5) { window.Seguir.por(document.getElementById('cena'), tl, T, t); ultimo = t; }
+    }
+  };
+  // peças de 19/10/2026 (ele: "podemos transformar isso em elementos para não ter que construir a cada video?"), com o
+  // desenho do #300: série de fotos, documento (nota, nota curta, mensagem), carimbos com rótulo e o fecho
+  T.fotos = (lista, ini, fim, o) => window.Fotos.por(document.getElementById('cena'), tl, T, lista, ini, fim, o);
+  T.documento = (o) => window.Documento.por(document.getElementById('cena'), tl, T, o);
+  T.carimbos = (lista, o) => window.Carimbos.por(document.getElementById('cena'), tl, T, lista, o);
+  T.fecho = (o) => window.Fecho.por(document.getElementById('cena'), tl, T, o);
+  // plenário com foto (20/10/2026, veio da v1): T.plenario({cadeiras, grupos, aro, centro, nomes, ini, fim}); sem cadeiras, o STF
+  T.plenario = (o) => window.Plenario.por(document.getElementById('cena'), tl, T, o);
+  T.STF = window.Plenario.STF;
+  // colagem de mini documentário (24/10/2026, "aprovo o plano colagem-documental"): T.colagem.papel/mapa/recorte/cartaz/...
+  window.Colagem.instalar(tl, T);
+  // molde números (24/10/2026, "pode fazer o molde números"): T.numeros.fundo/numero/titulo/barra/barras/regua/alerta/troca/comenta
+  T.duracao = DADOS.duracao; window.Numeros.instalar(tl, T);
+  // a capa abre o vídeo COM a voz (19/10/2026, ele: "o vídeo tem que iniciar na capa, o locutor começa a falar e a capa
+  // só troca alguns segundos depois"): T.capa(ate) mostra a capa escolhida (animacao/capa.jpg) de 0 até `ate`, crescendo
+  // devagar, e sai; sem o 1 s de capa parada antes da fala (o render também tira)
+  // capa viva (21/10/2026, "aprovo o plano capa-viva"; ele: "fica muito tempo parada essa tela [...] se tiver um vídeo
+  // por baixo ele tem que começar em 1,7 segundos no máximo"): com DADOS.capa_fundo (o trecho de onde o agente de capa
+  // tirou a foto), o trecho toca desde 0 no lugar e no quadro da foto, e o texto da capa (capa-texto.png) fica por cima
+  // até `ate`; a capa.jpg fica embaixo só enquanto o trecho carrega (mesma cena da foto). O trecho para antes do próximo
+  // corte da edição original (f.dur) e fica no último quadro até a capa sair. Sem trecho de origem (capa do
+  // caminho de antes) fica como era: começar o take antes, por baixo, caía em outra cena da edição (a apresentadora do
+  // jornal no #316), e o tocador não sabe onde a edição corta (ACHADOS capa-viva.1)
+  T.capa = (ate) => {
+    T.capaNaCena = true;
+    window.__capaAte = +ate || 0;      // travas-da-verificacao (23/10/2026): a régua ignora este tempo (a cena pode passar uma variável)
+    const el = document.createElement('div');
+    el.className = 'peca-capa'; el.style.cssText = 'position:absolute;inset:0;overflow:hidden;z-index:4';
+    // sem capa escolhida ainda, a opção 1 (a régua via "tela vazia" de 0 a 3 s e o animador gastava consertando, #302)
+    const img = '<img class="capa-img" src="animacao/capa.jpg" onerror="if(!this.dataset.f){this.dataset.f=1;this.src=\'animacao/capa-1.jpg\'}" style="position:absolute;inset:0;width:1080px;height:1920px;max-width:none">';
+    const F = (DADOS.capa_fundo || []).filter(f => f && f.src);
+    if (F.length) {
+      const mascara = l => l === 'esq' ? 'linear-gradient(90deg,#000 60%,transparent)' : l === 'dir' ? 'linear-gradient(90deg,transparent,#000 40%)' : '';
+      el.innerHTML = img + F.map(f => { const m = mascara(f.lado);
+        return `<div style="position:absolute;left:${f.caixa[0]}px;top:0;width:${f.caixa[1]}px;height:1120px;overflow:hidden;${m ? `mask-image:${m};-webkit-mask-image:${m}` : ''}">`
+          + `<video class="trecho capa-trecho" data-ini="0" data-fim="${Math.min(ate, f.dur || ate)}" data-corte="${+f.seg}" src="${f.src}" muted playsinline preload="metadata"`
+          + ` style="position:absolute;left:${f.x - f.caixa[0]}px;top:${f.y}px;width:${f.w}px;height:${f.h}px;max-width:none;object-fit:fill"></video></div>`; }).join('')
+        + `<img src="animacao/capa-texto.png?v=${DADOS.capa_v || 0}" style="position:absolute;inset:0;width:1080px;height:1920px;max-width:none">`;
+      document.getElementById('cena').appendChild(el);
+      tl.to(el, {opacity: 0, duration: .3, ease: 'power2.in'}, ate - .3);
+      return ate;
+    }
+    el.innerHTML = img;
+    document.getElementById('cena').appendChild(el);
+    tl.fromTo(el, {scale: 1, transformOrigin: '50% 40%'}, {scale: 1.04, duration: ate, ease: 'none'}, 0);
+    tl.to(el, {opacity: 0, scale: 1.1, duration: .3, ease: 'power2.in'}, ate - .3);
+    return ate;
+  };
+  // texto que passa da área segura encolhe até caber (20/10/2026; 15 de 60 problemas do editor nos #300-#305 eram texto
+  // cortado na borda, o animador escreve sem ver a tela). A área é a da régua: x 64-1016 e, na faixa dos ícones do app
+  // (y 765-1880), até x 900. Roda antes de montar, sem o GSAP ter mexido em nada; só encolhe (até 55%, menos que isso
+  // é texto de propósito fora da tela, para entrar deslizando). window.__encaixados: o que encolheu (a régua mostra).
+  window.__encaixados = [];
+  const encaixa = () => {
+    const r0 = document.getElementById('root').getBoundingClientRect(), k = r0.width / 1080 || 1;
+    document.querySelectorAll('#cena svg text').forEach(t => {
+      const b = t.getBoundingClientRect();
+      if (!b.width) return;
+      const x0 = (b.left - r0.left) / k, x1 = (b.right - r0.left) / k, y0 = (b.top - r0.top) / k, y1 = (b.bottom - r0.top) / k;
+      const min = 64, max = (y1 > 765 && y0 < 1880) ? 900 : 1016;
+      if (x0 >= min - .5 && x1 <= max + .5) return;
+      const anc = t.getAttribute('text-anchor') || getComputedStyle(t).textAnchor || 'start', cx = (x0 + x1) / 2;
+      const cabe = anc === 'middle' ? 2 * Math.min(cx - min, max - cx) : anc === 'end' ? x1 - min : max - x0;
+      const fator = cabe / (x1 - x0);
+      if (!(fator > .55 && fator < 1)) return;
+      [t, ...t.querySelectorAll('[font-size]')].forEach(e => {
+        const f = parseFloat(e.getAttribute('font-size') || getComputedStyle(e).fontSize);
+        if (f) e.setAttribute('font-size', (f * fator).toFixed(1));
+      });
+      window.__encaixados.push({texto: t.textContent.trim().slice(0, 40), fator: +fator.toFixed(2)});
+    });
+  };
+  try { encaixa(); } catch (e) { console.error('encaixa:', e); }
+  // o "pulo" a partir do centro (20/10/2026, medido no #304 com a régua): o animador escreve fromTo(el, {scale: .7},
+  // {scale: 1, transformOrigin: '50% 50%'}); o estado de partida era desenhado com a origem do SVG (0,0) e o GSAP, ao
+  // aplicar a origem nova, compensa para não pular, então a palavra crescia a partir do canto esquerdo da tela e saía
+  // pela borda durante a entrada (9 "cortado na borda" no #304, todos no meio do pulo). Todo texto e grupo da cena já
+  // nasce com a origem no próprio centro.
+  try { const alvos = document.querySelectorAll('#cena svg text, #cena svg g'); if (alvos.length) gsap.set(alvos, {transformOrigin: '50% 50%'}); }
+  catch (e) { console.error('origem:', e); }
+  try { if (typeof montar === 'function') montar(tl, T); T._resolverSeguir(); }
+  // travas-da-verificacao (23/10/2026; #354: o erro de código virou 9 avisos de layout e ninguém consertou): o erro fica em
+  // window.__erroCena para a régua tratar como erro (trava a aprovação e o animador conserta) e o vídeo final não sair
+  catch (e) { console.error('a animação (montar) deu erro:', e); window.__erroCena = String(e).slice(0, 300); document.getElementById('cena').insertAdjacentHTML('beforeend',
+    `<svg width="1080" height="1920" style="position:absolute;inset:0"><text x="80" y="900" fill="#ff8a95" font-size="40">erro na animação: ${String(e).slice(0, 60)}</text></svg>`); }
+  const FIM = Math.max(DADOS.duracao, fimExtra);   // a voz, ou o fim da assinatura se ela vier depois
+  tl.set({}, {}, FIM);           // a linha do tempo dura o vídeo inteiro
+  tl.fromTo('#fundo-faixas', {x: -160}, {x: 220, duration: FIM + 1, ease: 'none'}, 0);   // as faixas andam (v1)
+  // legenda (16/10/2026, a regra da v1): o pedaço aparece inteiro apagado e cada palavra ACENDE quando é dita; as
+  // palavras de window.DESTAQUE (o animador define na cena) ficam em amarelo; cabe em 700 px (até x 890)
+  if (!window.SEM_LEGENDA) {
+    const svg = document.getElementById('legenda'), ns = 'http://www.w3.org/2000/svg';
+    const dest = new Set((window.DESTAQUE || []).map(norm));
+    const naColagem = x => (T._colagemJanelas || []).some(([a, b]) => x >= a - .05 && x < b);
+    const papelEscuro = x => { let d = false; for (const [a, b, e] of T._colagemJanelas || []) if (x >= a - .05 && x < b) d = !!e; return d; };
+    let nTira = 0;
+    const tira = (ws, ini, fim) => {        // colagem: 2 a 3 palavras por vez, como etiqueta colada (reel De0bSjaxHqP)
+      const g = document.createElementNS(ns, 'g'), txt = ws.map(w => w.p).join(' ').toUpperCase(), esc = papelEscuro(ini);
+      const larg = txt.length * 50 * .47 + 36, gr = ((nTira++ * 5) % 3 - 1) * 1.2;
+      g.setAttribute('opacity', '0'); g.setAttribute('transform', `rotate(${gr} 480 1330)`);
+      g.innerHTML = `<rect x="${480 - larg / 2}" y="1290" width="${larg}" height="66" fill="${esc ? '#fbf7ee' : '#0a1748'}"/>`
+        + `<text x="480" y="1341" text-anchor="middle" font-size="50" style="font-family:Impact,sans-serif" fill="#ffffff">`
+        + ws.map(w => `<tspan fill="${dest.has(norm(w.p)) ? (esc ? '#e23b4c' : '#ffc933') : (esc ? '#0a1748' : '#ffffff')}">${w.p.toUpperCase()} </tspan>`).join('') + `</text>`;
+      svg.appendChild(g);
+      tl.set(g, {opacity: 1}, ini); tl.set(g, {opacity: 0}, fim);
+    };
+    DADOS.legenda.forEach((s, k) => {
+      if (naColagem(s.ini)) {
+        const ws = s.palavras, n = ws.length, por = n <= 3 ? n : Math.ceil(n / Math.ceil(n / 3));
+        for (let i = 0; i < n; i += por) tira(ws.slice(i, i + por), ws[i].ini, i + por < n ? ws[i + por].ini : s.fim);
+        return;
+      }
+      const t = document.createElementNS(ns, 'text');
+      t.setAttribute('class', 'lb' + k); t.setAttribute('x', '540'); t.setAttribute('y', '1340'); t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('font-size', '62'); t.setAttribute('font-weight', '900'); t.setAttribute('opacity', '0');
+      // sem contorno escuro (16/10/2026, ele: "nas legendas parece que tem uma sombra ou borda [...] pode tirar")
+      s.palavras.forEach((w, q) => {
+        const sp = document.createElementNS(ns, 'tspan');
+        sp.setAttribute('class', `lw${k}_${q}`); sp.setAttribute('fill', dest.has(norm(w.p)) ? '#ffc933' : '#F4F6FF');
+        sp.style.fillOpacity = '.25'; sp.textContent = w.p + ' ';
+        t.appendChild(sp);
+        tl.to(sp, {fillOpacity: 1, duration: .12}, w.ini);
+      });
+      svg.appendChild(t);
+      tl.set(t, {opacity: 1}, s.ini); tl.set(t, {opacity: 0}, s.fim);
+    });
+    // o traço nas três cores do logo embaixo da legenda, o vídeo todo (pecas-take-e-locutor; estudo regras/pecas/take)
+    const traco = document.createElementNS(ns, 'g'); traco.setAttribute('opacity', '0');
+    [['#ff4d5e', 0], ['#9cbcff', 44], ['#ffc933', 88]].forEach(([c, dx]) => { const r = document.createElementNS(ns, 'rect');
+      r.setAttribute('x', 474 + dx); r.setAttribute('y', 1378); r.setAttribute('width', 44); r.setAttribute('height', 8); r.setAttribute('fill', c);
+      traco.appendChild(r); });
+    svg.appendChild(traco);
+    DADOS.legenda.forEach(s => { if (!naColagem(s.ini)) { tl.set(traco, {opacity: 1}, s.ini); tl.set(traco, {opacity: 0}, s.fim); } });
+    const cabe = () => svg.querySelectorAll('text').forEach(t => { const w = t.getBBox().width, f = parseFloat(t.getAttribute('font-size'));
+      if (w > 700) t.setAttribute('font-size', (f * 700 / w).toFixed(1)); });
+    cabe(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(cabe);
+  }
+  // trechos de vídeo: <video class="trecho" data-bloco="N" data-corte="início"> ficam no tempo do bloco N; os takes
+  // (16/10/2026, "aprovo o plano v2-takes") dizem a janela no nosso áudio com data-ini e data-fim
+  const vids = Array.from(document.querySelectorAll('video.trecho'));
+  // 20/10/2026 (ele: "o preview no mobile não esta funcionando"): sem playsinline o Safari do iPhone não toca o trecho dentro
+  // da página (recusa ou abre em tela cheia); a v1 tinha "muted playsinline". Atributo antes de carregar, não só propriedade.
+  vids.forEach(v => { v.muted = true; v.playsInline = true; v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', ''); });
+  // 19/10/2026 (iPhone: tela branca ao dar play com os trechos em 1080): fora do vídeo final, a cópia leve (servidor.video_leve)
+  // ?render=1&leve=1 (21/10/2026, previa-em-video): a prévia em vídeo, em 720p, fotografa com as cópias leves (as de 1080p
+  // deixavam o #306 em 212 s)
+  const leveNoRender = render && /[?&]leve=1/.test(location.search);
+  if (!render || leveNoRender) vids.forEach(v => { const s = v.getAttribute('src'); if (s && /\.mp4($|\?)/.test(s) && !/leve=1/.test(s)) v.src = s + (s.includes('?') ? '&' : '?') + 'leve=1'; });
+  // 20/10/2026 ("aprovo o plano render-rapido"): no vídeo final, a cópia H.264 que pula rápido (render.video_quadro)
+  else vids.forEach(v => { const s = v.getAttribute('src'); if (s && /\.mp4($|\?)/.test(s) && !/quadro=1/.test(s)) v.src = s + (s.includes('?') ? '&' : '?') + 'quadro=1'; });
+  const som = document.getElementById('som'), botao = document.getElementById('tocar'), barra = document.getElementById('barra'),
+        tempo = document.getElementById('tempo'), escala = document.getElementById('escala'), moldura = document.getElementById('moldura');
+  function ajusta() {
+    if (cru) { escala.style.transform = ''; return; }
+    const k = Math.min(moldura.clientWidth / 1080, moldura.clientHeight / 1920);
+    escala.style.transform = 'scale(' + k + ')';
+    escala.style.marginRight = (1080 * k - 1080) + 'px'; escala.style.marginBottom = (1920 * k - 1920) + 'px';
+  }
+  addEventListener('resize', ajusta); ajusta();
+  // 20/10/2026 (iPhone: faixa dos lados e embaixo na prévia grande): o quadro cresce sem o iPhone avisar 'resize' e a
+  // cena ficava no tamanho antigo; agora ela vigia o próprio quadro
+  if (window.ResizeObserver) new ResizeObserver(ajusta).observe(moldura);
+  // a capa escolhida (16/10/2026, "aprovo o plano v2-capa"): aparece parada no começo e fica 1 s na tela antes da fala;
+  // a régua e os quadros (?cru=1) não a veem
+  const capaEl = document.getElementById('capa-abre'), temCapa = !cru && capaEl.children.length > 0 && !T.capaNaCena;
+  let naCapa = false, posicao = 0, emCauda = false, caudaDe = 0;
+  barra.max = FIM; document.getElementById('root').dataset.duration = FIM.toFixed(2);
+  function desenha(t) {
+    if (temCapa) capaEl.style.display = (naCapa || (som.paused && t < 0.05)) ? 'block' : 'none';
+    posicao = t = Math.max(0, Math.min(t, FIM));
+    tl.seek(t);
+    for (const v of vids) {
+      const blc = T.bloco(+v.dataset.bloco), b = {ini: v.dataset.ini ? parseFloat(v.dataset.ini) : blc.ini, fim: v.dataset.fim ? parseFloat(v.dataset.fim) : blc.fim};
+      const dentro = t >= b.ini && t < b.fim, alvo = parseFloat(v.dataset.corte || '0') + (t - b.ini);
+      // 20/10/2026 (#306, ele: "no segundo 13,8 em vez de aparecer o boulos aparece o lula"): o take entrava tocando do
+      // começo do arquivo enquanto o pulo até o corte não chegava (o começo do reel do Boulos é o Lula). Na prévia: 4 s
+      // antes da vez, o take já espera parado no corte; e, fora do ponto, fica invisível em vez de mostrar outro trecho
+      // só na prévia de assistir: a régua, a folha e os Olhos (?cru=1) fotografam o take sempre (20/10/2026: com "!render"
+      // eles viam os takes vazios)
+      if (!cru) v.style.opacity = dentro && (v.seeking || v.readyState < 2 || Math.abs(v.currentTime - alvo) > .5) ? 0 : '';
+      if (!dentro) {
+        if (!v.paused) v.pause();
+        const corte = parseFloat(v.dataset.corte || '0');
+        if (!cru && t >= b.ini - 4 && t < b.ini && v.readyState >= 1 && !v.seeking && Math.abs(v.currentTime - corte) > .3) v.currentTime = corte;
+        continue;
+      }
+      // ?render=1 (o vídeo final, 16/10/2026, "aprovo o plano v2-parte4-publicar"): cada quadro põe o trecho no tempo exato
+      if (render) { if (Math.abs(v.currentTime - alvo) > .001) v.currentTime = alvo; }
+      // 19/10/2026 (ele: "o áudio das pessoas não está sincronizado com os vídeos"): deixava passar até 0,4 s de
+      // diferença (a boca fora da voz; com o vídeo em 1080 o atraso cresceu). Agora: mais de 0,25 s pula para o tempo
+      // certo; de 0,04 a 0,25 s acelera ou freia um pouco até alcançar (sem pulo na imagem)
+      else if (v.readyState >= 1 && !v.seeking) {
+        const dif = v.currentTime - alvo;
+        if (Math.abs(dif) > 0.25) { v.currentTime = alvo; v.playbackRate = 1; }
+        else if (Math.abs(dif) > 0.04) v.playbackRate = dif > 0 ? 0.9 : 1.1;
+        else if (v.playbackRate !== 1) v.playbackRate = 1;
+      }
+      if (!som.paused && v.paused) v.play().catch(() => {});
+      if (som.paused && !v.paused) v.pause();
+    }
+    barra.value = t; tempo.textContent = t.toFixed(1).replace('.', ',') + ' s';
+    document.getElementById('fio').style.width = (100 * t / FIM) + '%';
+    const toca = !som.paused || naCapa || emCauda;
+    document.body.classList.toggle('tocando', toca);
+    if (mini && avisado !== toca) { avisado = toca; try { parent.postMessage({previa: avisado ? 'tocando' : 'pausada'}, '*'); } catch (e) {} }
+  }
+  // --- som: efeitos e trilha (Web Audio; ?cru=1 não carrega) ---
+  SONS.sort((a, b) => a.t - b.t);
+  for (let i = SONS.length - 1; i > 0; i--)                    // o mesmo som a menos de 0,12 s do anterior: um só (v1)
+    if (SONS.slice(Math.max(0, i - 4), i).some(x => x.som === SONS[i].som && SONS[i].t - x.t < .12)) SONS.splice(i, 1);
+  const TRILHA = {base: .45, sob_a_voz: .33, sobe: 1.2, desce: 2};   // v1: 0,45 com rampa; o carve 0,4 abaixava ~9,6 dB sob a fala
+  const ctxA = cru ? null : new (window.AudioContext || window.webkitAudioContext)();
+  const buf = {}, tocando = [];
+  let ganhoTrilha = null;
+  if (ctxA) for (const n of ['trilha', ...new Set(SONS.map(x => x.som))])
+    // a trilha própria do vídeo (animacao/trilha.mp3, 24/10/2026) vem antes da de sempre
+    (n === 'trilha' ? fetch('animacao/trilha.mp3').then(r => { if (!r.ok) throw 0; return r; }).catch(() => fetch('/sons/trilha.mp3')) : fetch(`/sons/${n}.mp3`))
+      .then(r => r.arrayBuffer()).then(b => ctxA.decodeAudioData(b)).then(d => { buf[n] = d; }).catch(() => {});
+  const falando = t => DADOS.palavras.some(w => t >= w[0] - .12 && t <= w[1] + .2);
+  function volTrilha(t) {
+    const rampa = Math.min(1, t / TRILHA.sobe, Math.max(0, (FIM - t) / TRILHA.desce));
+    return TRILHA.base * rampa * (falando(t) ? TRILHA.sob_a_voz : 1);
+  }
+  function pararSons() { while (tocando.length) { try { tocando.pop().stop(); } catch (e) {} } ganhoTrilha = null; }
+  function agendarSons(t0) {
+    if (!ctxA) return;
+    pararSons(); ctxA.resume();
+    const agora = ctxA.currentTime;
+    for (const x of SONS) {
+      if (x.t < t0 - .03 || !buf[x.som]) continue;
+      const src = ctxA.createBufferSource(), g = ctxA.createGain();
+      src.buffer = buf[x.som]; g.gain.value = x.vol; src.connect(g).connect(ctxA.destination);
+      src.start(agora + Math.max(0, x.t - t0)); tocando.push(src);
+    }
+    if (buf.trilha) {
+      const src = ctxA.createBufferSource(); ganhoTrilha = ctxA.createGain();
+      src.buffer = buf.trilha; src.loop = true; ganhoTrilha.gain.value = volTrilha(t0);
+      src.connect(ganhoTrilha).connect(ctxA.destination); src.start(agora, t0 % buf.trilha.duration); tocando.push(src);
+    }
+  }
+  window.__sons = {lista: SONS, volTrilha, ativos: () => tocando.length, estado: () => ctxA && ctxA.state, carregados: () => Object.keys(buf)};
+  // 20/10/2026 (iPhone: "toca o audio mas fica parado na capa"): um erro num quadro matava o laço em silêncio (a voz seguia,
+  // a imagem parava no 1º quadro). Agora o quadro com erro é anotado e o laço continua; ?depura=1 mostra o erro na tela.
+  const depura = /[?&]depura=1/.test(location.search), erros = [];
+  function anota(e) {
+    const m = String(e && (e.stack || e.message) || e).slice(0, 300);
+    if (erros.length < 5 && !erros.includes(m)) erros.push(m);
+    if (depura) { let d = document.getElementById('depura'); if (!d) { d = document.createElement('pre'); d.id = 'depura';
+      d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99;margin:0;padding:6px;background:#300c;color:#fff;font:11px/1.3 monospace;white-space:pre-wrap'; document.body.appendChild(d); }
+      d.textContent = erros.join('\n\n'); }
+  }
+  window.__erros = erros;
+  if (depura) { addEventListener('error', ev => anota(ev.error || ev.message)); addEventListener('unhandledrejection', ev => anota(ev.reason)); anota('depura ligado'); }
+  // 20/10/2026 (iPhone, de novo: "parou de tocar"): o laço só continua com a voz tocando; no iPhone a voz pode ainda
+  // constar parada no instante em que o play é aceito, e o laço morria ali (voz seguindo, imagem na capa, sem erro).
+  // Agora ele religa quando a voz começa de verdade ('playing') e um vigia religa se a voz anda e a imagem não.
+  let ultimoQuadro = 0, lacoVivo = false, proximo = 0;      // um laço só: o próximo quadro pedido substitui o anterior
+  function laco() {
+    cancelAnimationFrame(proximo);
+    lacoVivo = true; ultimoQuadro = performance.now();
+    try { desenha(som.currentTime); } catch (e) { anota(e); }
+    try { if (ganhoTrilha) ganhoTrilha.gain.setTargetAtTime(volTrilha(som.currentTime), ctxA.currentTime, .08); } catch (e) { anota(e); }
+    if (!som.paused) proximo = requestAnimationFrame(laco); else lacoVivo = false;
+  }
+  const religa = () => { if (!som.paused && !document.hidden && (!lacoVivo || performance.now() - ultimoQuadro > 400)) {
+    if (depura) anota('laço religado em ' + som.currentTime.toFixed(1) + ' s'); laco(); } };
+  som.addEventListener('playing', religa);
+  setInterval(religa, 500);
+  som.addEventListener('play', () => agendarSons(som.currentTime));
+  // a voz acabou e há assinatura depois: o relógio passa a ser o do navegador até o FIM (os sons já agendados seguem)
+  const temCauda = FIM > DADOS.duracao + .05;
+  function cauda() {
+    if (!emCauda) return;
+    const t = DADOS.duracao + (performance.now() - caudaDe) / 1000;
+    desenha(t);
+    if (ganhoTrilha) ganhoTrilha.gain.setTargetAtTime(volTrilha(t), ctxA.currentTime, .08);
+    if (t >= FIM) { emCauda = false; pararSons(); botao.textContent = '▶ Tocar'; desenha(FIM); return; }
+    requestAnimationFrame(cauda);
+  }
+  function comecaCauda(t) { emCauda = true; caudaDe = performance.now() - (t - DADOS.duracao) * 1000; botao.textContent = '❚❚ Pausar'; cauda(); }
+  som.addEventListener('pause', () => { if (!(temCauda && som.ended)) pararSons(); });
+  som.addEventListener('seeked', () => { if (!som.paused) agendarSons(som.currentTime); });
+  let preparados = false;
+  botao.addEventListener('click', () => {
+    // 19/10/2026 (iPhone: a página inteira ficava branca no play): dar play+pause em TODOS os trechos de uma vez derrubava
+    // o Safari; trecho mudo toca sem esse truque, então só o 1º é preparado (os outros tocam quando chega a vez deles)
+    if (!preparados) { preparados = true; vids.forEach(v => { v.muted = true; v.setAttribute('muted', ''); v.preload = 'metadata'; });
+      const v0 = vids[0]; if (v0) v0.play().then(() => v0.pause()).catch(() => {}); }
+    if (naCapa) return;
+    if (ctxA) ctxA.resume();             // o navegador só libera o som depois de um toque
+    if (emCauda) { emCauda = false; pararSons(); botao.textContent = '▶ Tocar'; desenha(posicao); return; }
+    if (temCauda && posicao >= DADOS.duracao - .02 && posicao < FIM - .05) { agendarSons(posicao); comecaCauda(posicao); return; }
+    if (som.paused) { if (posicao >= FIM - 0.05) { som.currentTime = 0; posicao = 0; }
+      if (temCapa && som.currentTime < 0.05) {          // do começo: 1 s de capa, depois a fala
+        naCapa = true; botao.textContent = '❚❚ Pausar'; desenha(0);
+        // 20/10/2026 (iPhone: "ficou parado na capa"): o Safari só aceita o play dentro do toque; o play do setTimeout era
+        // recusado e voltava para a capa. Destrava aqui, mudo, e o play de depois da capa passa a valer.
+        som.muted = true;
+        som.play().then(() => { som.pause(); som.currentTime = 0; som.muted = false; }).catch(() => { som.muted = false; });
+        setTimeout(() => { naCapa = false; som.play().then(laco).catch(() => { botao.textContent = '▶ Tocar'; desenha(0); }); }, 1000);
+        return;
+      }
+      som.play().then(() => { botao.textContent = '❚❚ Pausar'; laco(); }).catch(() => {}); }
+    else { som.pause(); botao.textContent = '▶ Tocar'; desenha(som.currentTime); }
+  });
+  document.getElementById('capa-toque').addEventListener('click', () => botao.click());
+  function pula(d) {
+    const t = Math.max(0, Math.min(FIM, posicao + d));
+    if (emCauda) { emCauda = false; pararSons(); botao.textContent = '▶ Tocar'; }
+    try { som.currentTime = Math.min(t, DADOS.duracao); } catch (e) {} desenha(t);
+  }
+  document.querySelectorAll('.pulo').forEach(b => b.addEventListener('click', ev => { ev.stopPropagation(); pula(parseFloat(b.dataset.pulo)); }));
+  som.addEventListener('ended', () => { if (temCauda) comecaCauda(DADOS.duracao); else { botao.textContent = '▶ Tocar'; desenha(DADOS.duracao); } });
+  addEventListener('resize', () => desenha(som.currentTime));
+  barra.addEventListener('input', () => { const t = parseFloat(barra.value); if (emCauda) { emCauda = false; pararSons(); botao.textContent = '▶ Tocar'; }
+    try { som.currentTime = Math.min(t, DADOS.duracao); } catch (e) {} desenha(t); });
+  const inicio = parseFloat((location.hash.match(/t=([\d.]+)/) || [])[1] || (temCapa ? '0' : '0.5'));
+  desenha(inicio); try { som.currentTime = inicio; } catch (e) {}
+  // 20/10/2026 ("aprovo o plano previa-de-trabalho"): a tela do item comanda a prévia pequena (±1 s, ±5 s, o segundo
+  // grande e "pedir neste segundo")
+  window.__previa = {desenha, fim: FIM, pula, agora: () => posicao, tocando: () => !som.paused || naCapa || emCauda,
+    pausa: () => { if (!som.paused || naCapa || emCauda) botao.click(); }};
+})();
+</script>
+</body>
+</html>

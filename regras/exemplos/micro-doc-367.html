@@ -1,0 +1,169 @@
+<!-- #367 · micro documentário em colagem, montado à mão (24/10/2026, "aprovo o plano colagem-documental"; ele: "eu queria
+     que tu montasse esse completo para eu ver [...] quero usar o hemiciclo e quero ver como vai usar nossos elementos com a
+     colagem e como vai ficar a armonia disso"). Vira o exemplo-modelo para o animador. Fotos e licenças:
+     material/colagem/creditos.json (Wikimedia Commons: domínio público, CC BY e CC BY-SA, com o crédito na tela). -->
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" style="position:absolute;inset:0">
+  <!-- bloco 10: a balança dos três poderes, desenhada (fica acima da colagem) -->
+  <g class="balanca" opacity="0">
+    <rect x="470" y="700" width="20" height="330" fill="#0a1748"/>
+    <path d="M400 1040 H560 L540 1000 H420 Z" fill="#0a1748"/>
+    <g class="balanca-braco">
+      <rect x="200" y="692" width="560" height="16" rx="8" fill="#0a1748"/>
+      <g class="prato-e"><path d="M220 708 L160 860 M220 708 L280 860" stroke="#0a1748" stroke-width="5"/>
+        <path d="M140 860 H300 Q290 905 220 905 Q150 905 140 860 Z" fill="#ff4d5e"/></g>
+      <g class="prato-d"><path d="M740 708 L680 860 M740 708 L800 860" stroke="#0a1748" stroke-width="5"/>
+        <path d="M660 860 H820 Q810 905 740 905 Q670 905 660 860 Z" fill="#9cbcff"/></g>
+    </g>
+    <circle cx="480" cy="700" r="18" fill="#ffc933" stroke="#0a1748" stroke-width="6"/>
+  </g>
+</svg>
+<script>
+window.DESTAQUE = ['1952', 'Pernambuco', 'Paulo', 'sindical', 'PT', 'Collor', 'Henrique', '2002', 'Família', 'boas', 'poder',
+                   'escândalos', 'Mensalão', 'Petrolão', 'preso', 'anulou', 'INSS', 'derrubou', 'Congresso', 'Supremo', 'segunda',
+                   'seis', 'oito', 'quatro', 'contrapesos', 'comenta'];
+
+function montar(tl, T) {
+  const C = T.colagem, P = (n, w, k) => T.palavra(n, w, k), B = n => T.bloco(n);
+  const F = 'material/colagem/', CLARO = '#efe6d2', MARINHO = '#0a1748', AMARELO = '#ffc933', AZUL = '#9cbcff', VERM = '#ff4d5e';
+
+  // 1 · 1952: o mapa de papel, Pernambuco acende, o caminhão pau de arara desce até São Paulo
+  C.papel(0, null);
+  C.circulo({x: 720, y: 720, r: 250, cor: AZUL, ini: .1});
+  C.mapa({ini: .05, escala: 1.02, acende: [['pe', P(1, 'Pernambuco')], ['sp', P(1, 'Paulo')]],
+          rota: ['pe', 'sp', P(1, 'chegou'), P(1, 'arara') + .1], icone: 'caminhao'});
+  C.titulo({texto: '<b>1952</b>', y: 360, tam: 190, ini: .1, marca: P(1, '1952') + .25});
+  C.rotulo({texto: 'De Pernambuco a São Paulo', credito: 'Mapa: malha do IBGE · caminhão: ilustração', y: 1215, ini: P(1, 'Pernambuco')});
+
+  // 2 · o líder sindical: a folha amarela rasga por cima, ele entra recortado apontando, o cartaz do PT bate na parede
+  C.papel(B(2).ini - .05, B(3).ini - .1, {cor: AMARELO, rasga: true});
+  C.circulo({x: 300, y: 900, r: 290, cor: VERM, ini: B(2).ini + .1});
+  const lula79 = C.recorte({src: F + 'metalurgicos-1979-sem-fundo.png', x: -60, y: 600, w: 900, h: 589, ini: P(2, 'Virou'), de: 'esquerda', girar: -2});
+  C.tremida(lula79, P(2, 'Virou') + .4, B(2).fim, .5);
+  C.titulo({texto: 'Líder', x: 330, y: 330, tam: 110, tira: 'preta', ini: P(2, 'líder')});
+  C.titulo({texto: '<b>sindical</b>', x: 520, y: 470, tam: 120, ini: P(2, 'sindical'), marca: P(2, 'sindical') + .1});
+  C.cartaz({src: F + 'cartaz-1982.jpg', x: 590, y: 560, w: 290, h: 415, ini: P(2, 'fundar'), girar: 7});
+  C.titulo({texto: 'fundou o <b>PT</b> · 1980', x: 700, y: 1060, tam: 58, ini: P(2, 'fundar'), marca: P(2, 'PT')});
+  C.rotulo({texto: 'São Bernardo do Campo, 1979', credito: 'Fotos: domínio público (Wikimedia Commons) · cartaz do PT, 1982', y: 1210, ini: P(2, 'líder')});
+
+  // 3 · as eleições: três derrotas, uma vitória (faixa azul, Collor e FHC recortados, a posse por cima)
+  C.capitulo(B(3).ini - .12);
+  C.papel(B(3).ini - .1, null, {cor: CLARO, rasga: true});
+  C.faixa({lado: 'direita', cor: AZUL, ini: B(3).ini});
+  C.titulo({texto: 'As eleições', x: 330, y: 330, tam: 96, tira: 'preta', ini: B(3).ini + .05});
+  C.recorte({src: F + 'collor-1992-sem-fundo.png', x: 40, y: 450, w: 400, h: 607, ini: P(3, 'Collor'), de: 'esquerda', girar: -3});
+  C.rotulo({texto: '1989 · perdeu', x: 80, y: 1110, ini: P(3, 'Collor') + .2});
+  C.recorte({src: F + 'fhc-1999-sem-fundo.png', x: 520, y: 450, w: 400, h: 601, ini: P(3, 'Fernando'), de: 'direita', girar: 3});
+  C.rotulo({texto: '1994 e 1998 · perdeu', x: 560, y: 1110, ini: P(3, 'Henrique')});
+  C.cartaz({src: F + 'posse-2003.jpg', x: 150, y: 560, w: 620, h: 407, ini: P(3, '2002'), girar: -3});
+  C.titulo({texto: 'eleito em <b>2002</b>', x: 480, y: 1060, tam: 84, ini: P(3, '2002') + .1, marca: P(3, '2002') + .3});
+  C.rotulo({texto: 'Posse, 1º de janeiro de 2003', credito: 'Fotos: Ubirajara Dettimar/ABr · Arquivo Nacional · Senado Federal (Wikimedia Commons)',
+            y: 1215, ini: P(3, '2002') + .3});
+
+  // 4 · o primeiro governo: a faixa amarela atravessa, Lula e FHC na posse, os programas viram o Bolsa Família
+  C.capitulo(B(4).ini - .12);
+  C.faixa({lado: 'horizontal', caixa: [-40, 470, 1160, 520], cor: AMARELO, ini: B(4).ini});
+  C.titulo({texto: 'Primeiro governo', x: 420, y: 330, tam: 90, tira: 'preta', ini: B(4).ini + .05});
+  C.cartaz({src: F + 'lula-fhc-2003.jpg', x: 120, y: 500, w: 560, h: 367, ini: P(4, 'Juntou'), girar: -3});
+  C.titulo({texto: 'Bolsa Escola · FHC', x: 330, y: 960, tam: 46, ini: P(4, 'Escola')});
+  C.titulo({texto: '+ Bolsa Alimentação', x: 360, y: 1028, tam: 46, ini: P(4, 'outros')});
+  C.titulo({texto: '+ Auxílio Gás', x: 300, y: 1096, tam: 46, ini: P(4, 'programas')});
+  C.seta({de: [560, 1040], para: [700, 1140], curva: -50, t: P(4, 'Família') - .35});
+  C.titulo({texto: 'bolsa <b>família</b> · 2003', x: 640, y: 1190, tam: 62, ini: P(4, 'Família') - .1, marca: P(4, 'Família')});
+  C.titulo({texto: 'sucesso até hoje', x: 760, y: 470, tam: 42, tira: 'preta', ini: P(4, 'sucesso'), girar: 4});
+  C.rotulo({texto: 'Posse, 2003', credito: 'Foto: Marcello Casal Jr./Agência Brasil', x: 600, y: 900, ini: P(4, 'Juntou') + .3});
+
+  // 5 · a virada: "é inegável que fez coisas boas" no papel claro; no "Mas" a folha azul-marinho rasga por cima
+  C.capitulo(B(5).ini - .1);
+  C.titulo({texto: 'É inegável', x: 480, y: 520, tam: 100, tira: 'preta', ini: P(5, 'inegável')});
+  C.titulo({texto: 'coisas <b>boas</b>', x: 480, y: 690, tam: 130, ini: P(5, 'coisas'), marca: P(5, 'boas')});
+  C.titulo({texto: 'no começo', x: 480, y: 820, tam: 56, tira: 'nenhuma', ini: P(5, 'começo')});
+  const tMas = P(5, 'Mas');
+  T.som('impacto-doc', tMas - .08);       // a virada: a música troca (ferramentas/trilha.py: arquivo → tensão) com o impacto
+  C.capitulo(tMas - .05);
+  C.papel(tMas - .08, B(7).ini - .1, {cor: MARINHO, rasga: true});
+  C.titulo({texto: 'O poder', x: 400, y: 520, tam: 130, ini: P(5, 'poder')});
+  C.titulo({texto: 'e a manutenção dele', x: 540, y: 660, tam: 60, ini: P(5, 'manutenção')});
+  C.titulo({texto: '<b>escândalos</b>', x: 480, y: 900, tam: 150, ini: P(5, 'escândalos') - .05, marca: P(5, 'escândalos') + .1});
+  C.titulo({texto: 'gigantescos', x: 480, y: 1050, tam: 70, ini: P(5, 'gigantescos'), girar: -2});
+  C.rotulo({texto: 'Análise · opinião do canal', y: 1215, ini: tMas + .2, claro: true});
+
+  // 6 · os escândalos (no papel escuro): mensalão e petrolão em recortes de manchete; a prisão; o Supremo anula
+  C.capitulo(B(6).ini - .1);
+  C.recorte({src: F + 'dirceu-2005-sem-fundo.png', x: 30, y: 380, w: 430, h: 553, ini: P(6, 'Mensalão'), de: 'esquerda', girar: -3});
+  C.manchete({chapeu: 'Mensalão · 2012', titulo: 'STF condena\nJosé Dirceu', sub: 'ex-chefe da Casa Civil · AP 470', x: 470, y: 400, w: 470,
+              ini: P(6, 'Mensalão') + .15, girar: 3});
+  C.cartaz({src: F + 'petrobras.jpg', x: 120, y: 900, w: 360, h: 270, ini: P(6, 'Petrolão'), girar: -4});
+  C.manchete({chapeu: 'Petrolão · balanço de 2014', titulo: 'R$ 6,19 bi\nem corrupção', sub: 'Petrobras, de 2004 a 2012', x: 520, y: 860, w: 430,
+              ini: P(6, 'Petrolão') + .15, girar: -2});
+  const tLula = P(6, 'Lula');
+  C.capitulo(tLula - .12);
+  C.recorte({src: F + 'lula-2018-sem-fundo.png', x: 560, y: 330, w: 420, h: 828, ini: tLula, de: 'baixo', girar: 1});
+  C.titulo({texto: 'preso · 2018', x: 300, y: 440, tam: 76, ini: P(6, 'preso')});
+  C.manchete({chapeu: 'Supremo · 08/03/2021', titulo: 'Condenações\nanuladas', sub: 'sem julgar o mérito', x: 70, y: 640, w: 480,
+              ini: P(6, 'Supremo'), girar: -3});
+  C.risco({x1: 120, y1: 415, x2: 490, y2: 405, t: P(6, 'anulou')});
+  C.rotulo({texto: 'Lava Jato', credito: 'Fotos: José Cruz/ABr · Rodrigo Soldon · Sérgio Silva (Wikimedia Commons)', y: 1215, ini: P(6, 'Mensalão'), claro: true});
+
+  // 7 · a volta: o papel claro rasga de volta; a posse, o INSS e o ministro que caiu
+  C.capitulo(B(7).ini - .12);
+  C.papel(B(7).ini - .1, null, {cor: CLARO, rasga: true});
+  C.faixa({lado: 'esquerda', cor: VERM, ini: B(7).ini});
+  C.cartaz({src: '/pecas/fotos/lula.jpg', x: 110, y: 420, w: 360, h: 360, ini: P(7, 'volta'), girar: -4});
+  C.titulo({texto: 'de volta · <b>2023</b>', x: 680, y: 360, tam: 66, ini: P(7, 'volta') + .1, marca: P(7, 'Planalto')});
+  C.manchete({chapeu: 'INSS · abril de 2025', titulo: 'Fraude de\nR$ 6,3 bi', sub: 'PF e CGU · descontos de 2019 a 2024', x: 520, y: 450, w: 440,
+              ini: P(7, 'fraude'), girar: 3});
+  C.recorte({src: F + 'lupi-2023-sem-fundo.png', x: 580, y: 720, w: 330, h: 441, ini: P(7, 'derrubou'), de: 'baixo', girar: -2});
+  C.titulo({texto: 'caiu o <b>ministro</b>', x: 330, y: 1060, tam: 62, ini: P(7, 'ministro'), marca: P(7, 'ministro') + .1});
+  C.rotulo({texto: 'Carlos Lupi, Previdência', credito: 'Foto: Geraldo Magela/Agência Senado', x: 80, y: 1215, ini: P(7, 'ministro')});
+
+  // 8 · Supremo x Congresso: perdeu no Congresso, a seta leva ao Supremo; os dois casos em bilhetes
+  C.capitulo(B(8).ini - .12);
+  C.faixa({lado: 'horizontal', caixa: [-40, 380, 1160, 420], cor: AZUL, ini: B(8).ini});
+  C.cartaz({src: F + 'congresso.jpg', x: 80, y: 400, w: 420, h: 279, ini: P(8, 'Congresso'), girar: -3});
+  C.titulo({texto: 'perdeu no congresso', x: 300, y: 760, tam: 46, tira: 'preta', ini: P(8, 'Congresso') + .1});
+  C.seta({de: [470, 420], para: [640, 470], curva: 50, t: P(8, 'foi')});
+  C.cartaz({src: F + 'stf.jpg', x: 560, y: 470, w: 420, h: 280, ini: P(8, 'Supremo'), girar: 3});
+  C.manchete({chapeu: '2024 · desoneração', titulo: 'Zanin suspende\na lei', sub: 'a pedido da AGU', x: 70, y: 860, w: 420, tam: 38,
+              ini: P(8, 'desoneração'), girar: -2});
+  C.manchete({chapeu: '2025 · IOF', titulo: 'Moraes\nrestabelece', sub: 'o aumento derrubado', x: 540, y: 860, w: 400, tam: 38,
+              ini: P(8, 'IOF'), girar: 2});
+  C.titulo({texto: 'a <b>segunda</b> chance', x: 480, y: 330, tam: 80, ini: P(8, 'segunda') - .1, marca: P(8, 'segunda')});
+  C.rotulo({texto: 'Fotos: Dária Baísa · Agência Senado', y: 1215, ini: P(8, 'Congresso') + .3});
+
+  // 9 · o Supremo de hoje: o painel azul-marinho rasgado entra e o nosso plenário monta dentro dele
+  C.capitulo(B(9).ini - .12);
+  C.painel({caixa: [30, 280, 1020, 1000], ini: B(9).ini - .1});
+  const sai2030 = ['Luiz Fux', 'Cármen Lúcia', 'Gilmar Mendes'];
+  T.plenario({ini: B(9).ini + .15, fim: B(10).ini - .15, nomes: true,
+    cadeiras: T.STF.map(c => c.vaga ? c : {...c, grupo: c.indicou === 'Lula' ? 'lula' : c.indicou === 'Dilma' ? 'dilma' : null,
+                                           marca: sai2030.includes(c.nome) ? 'sai' : null}),
+    grupos: {lula: {cor: 'vermelho', rotulo: 'LULA · 4', acende: P(9, 'Lula')},
+             dilma: {cor: 'amarelo', rotulo: 'DILMA · 2', acende: P(9, 'Dilma')}},
+    aro: {marca: 'sai', t: P(9, 'vagas'), cor: 'branco', resto_apaga: false},
+    centro: {texto: '6 DE 10', t: P(9, 'seis')}});
+  tl.to('.pl1m', {opacity: 0, duration: .15}, P(9, 'oito') - .15);     // o centro "6 DE 10" sai quando entra o 8 de 11
+  C.titulo({texto: 'até 2030: <b>8 de 11</b>', x: 480, y: 410, tam: 84, ini: P(9, 'oito') - .1, marca: P(9, 'oito'), fim: B(10).ini - .15});
+
+  // 10 · a conclusão (análise): a balança desequilibrada volta ao meio no "pesos e contrapesos"
+  C.capitulo(B(10).ini - .12);
+  C.titulo({texto: 'com mais <b>quatro</b>', x: 480, y: 380, tam: 96, ini: P(10, 'mais'), marca: P(10, 'quatro')});
+  C.titulo({texto: 'ele faz o que quiser', x: 480, y: 520, tam: 66, tira: 'preta', ini: P(10, 'faz')});
+  tl.fromTo('.balanca', {opacity: 0, y: 40}, {opacity: 1, y: 0, duration: .3, ease: 'power2.out'}, B(10).ini + .1);
+  tl.fromTo('.balanca-braco', {rotation: 0, svgOrigin: '480 700'}, {rotation: -14, duration: .5, ease: 'back.out(2)', svgOrigin: '480 700'}, P(10, 'quiser'));
+  tl.to('.balanca-braco', {rotation: 0, duration: .6, ease: 'elastic.out(1, .5)', svgOrigin: '480 700'}, P(10, 'reativa'));
+  tl.to('.balanca', {opacity: 0, duration: .2}, B(11).ini - .15);
+  C.titulo({texto: 'pesos e <b>contrapesos</b>', x: 480, y: 1130, tam: 66, ini: P(10, 'pesos'), marca: P(10, 'contrapesos')});
+  C.rotulo({texto: 'Análise · opinião do canal', y: 1240, ini: B(10).ini + .2});
+
+  // 11 · o convite: comenta aqui (seta para o botão), manda para quem precisa ver, segue (faltam 354 para 10 mil)
+  C.capitulo(B(11).ini - .12);
+  C.faixa({lado: 'direita', cor: AMARELO, ini: B(11).ini - .05});
+  C.titulo({texto: 'manda pra quem <b>precisa ver</b>', x: 480, y: 480, tam: 64, ini: P(11, 'manda'), marca: P(11, 'precisa')});
+  C.titulo({texto: 'segue: faltam 354 para <b>10 mil</b>', x: 470, y: 640, tam: 52, ini: P(11, 'precisa'), marca: P(11, 'precisa') + .2});
+  C.comenta({t: P(11, 'comenta'), x: 560, y: 1000});
+  // câmera: a colagem inteira aproxima devagar o vídeo todo (os 3 trechos parados aos 22, 52 e 55 s da prévia de 13:12)
+  tl.fromTo('.peca-colagem', {scale: 1, transformOrigin: '50% 50%'}, {scale: 1.05, transformOrigin: '50% 50%', duration: B(11).fim, ease: 'none'}, 0);
+  tl.fromTo('.balanca', {scale: 1, svgOrigin: '480 870'}, {scale: 1.06, svgOrigin: '480 870', duration: B(11).ini - B(10).ini, ease: 'none'}, B(10).ini);
+  T.assinatura();
+}
+</script>

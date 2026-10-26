@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assinatura · plenário</title>
+<style>
+@font-face { font-family: "Montserrat"; src: url("montserrat-latin.woff2") format("woff2"); font-weight: 400 900; }
+:root { --fundo: #0a1748; --texto: #f4f6ff; --apagado: #9cbcff; --amarelo: #ffc933; color-scheme: dark; }
+body { margin: 0; background: var(--fundo); color: var(--texto); font: 15px/1.45 Montserrat, system-ui, sans-serif; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-size: 24px; margin: 0; }
+p { margin: 0; color: var(--apagado); max-width: 75ch; }
+ol { margin: 0; padding-left: 20px; color: var(--apagado); max-width: 75ch; }
+.linha { display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-start; }
+.tela { position: relative; width: 360px; max-width: 100%; aspect-ratio: 1080 / 1920; border-radius: 16px; overflow: hidden;
+  background: radial-gradient(circle at 50% 46%, #1c3fae, #0a1748 80%); }
+.tela::before { content: ""; position: absolute; inset: -40%; background: repeating-linear-gradient(66deg, transparent 0 120px, rgba(255,255,255,.045) 120px 200px, transparent 200px 330px); }
+.tela svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.botoes { display: flex; gap: 10px; flex-wrap: wrap; }
+button { min-height: 44px; padding: 0 18px; border-radius: 10px; border: 1px solid var(--amarelo); background: transparent; color: var(--amarelo); font: inherit; font-weight: 700; cursor: pointer; }
+button.cheio { background: var(--amarelo); color: var(--fundo); }
+</style>
+</head>
+<body>
+<main>
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <h1>Assinatura · 1 · Plenário acendendo (melhorada)</h1>
+    <p>Uns 3 segundos, o último momento do vídeo. Toque com som para ouvir junto.</p>
+    <ol>
+      <li>As 24 cadeiras aparecem vazias (só o contorno), como um plenário esperando.</li>
+      <li>Elas acendem em leque, da esquerda para a direita, cada uma com um pulinho e um brilho; um pop curto a cada cor.</li>
+      <li>Um halo suave cresce atrás do símbolo, que "respira" uma vez.</li>
+      <li>INSTITUTO br360 bate como carimbo: entra 3 vezes maior, assenta em 0,2 s, treme, o símbolo de cima sente o baque e toca o som de carimbo.</li>
+      <li>FATO, FONTE E PONTO. entra palavra por palavra, e o ponto final é uma bolinha amarela do logo; @newsbr360 por último, com um sino suave.</li>
+    </ol>
+    <div class="botoes"><button type="button" class="cheio" id="som">▶ Tocar com som</button><button type="button" id="mudo">▶ Tocar sem som</button></div>
+  </header>
+  <div class="linha">
+    <div class="tela" id="tela"></div>
+    <div class="tela" id="fim" aria-label="como fica no fim"></div>
+  </div>
+  <p>À esquerda, a animação; à direita, como a tela fica parada no fim.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>
+const SIMB = [[141,287,'#ff4d5e'],[81,287,'#ff4d5e'],[21,287,'#ff4d5e'],[37,195,'#ff4d5e'],[102,196,'#ff4d5e'],[170,199,'#ff4d5e'],
+  [84,113,'#9cbcff'],[160,123,'#9cbcff'],[156,53,'#9cbcff'],[245,144,'#9cbcff'],[244,82,'#9cbcff'],[244,21,'#9cbcff'],
+  [338,21,'#ffc933'],[338,82,'#ffc933'],[337,144,'#ffc933'],[426,53,'#ffc933'],[422,123,'#ffc933'],[498,113,'#ffc933'],
+  [412,199,'#ffc933'],[480,196,'#ffc933'],[545,195,'#ffc933'],[441,287,'#ffc933'],[501,287,'#ffc933'],[561,287,'#ffc933']];
+// o leque: do arco esquerdo ao direito, pelo ângulo em volta do centro de baixo do símbolo
+const ORDEM = SIMB.map((p, i) => [Math.atan2(300 - p[1], p[0] - 291), i]).sort((a, b) => b[0] - a[0]).map(x => x[1]);
+function desenho() {
+  const larg = 700, k = larg / 582, x0 = 480 - larg / 2, y0 = 500, r = 21 * k;
+  const pos = SIMB.map(([x, y, c], i) => [x0 + x * k, y0 + y * k, c, ORDEM.indexOf(i)]);
+  const vazias = pos.map(([x, y]) => `<circle class="vz" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r - 2).toFixed(1)}" fill="none" stroke="#9cbcff" stroke-width="3" opacity=".35"/>`).join('');
+  const brilhos = pos.map(([x, y, c, o]) => `<circle class="br" data-o="${o}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="none" stroke="${c}" stroke-width="5" opacity="0"/>`).join('');
+  const cheias = pos.map(([x, y, c, o]) => `<circle class="ch" data-o="${o}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${c}"/>`).join('');
+  return `<svg viewBox="0 0 1080 1920">
+    <defs><radialGradient id="halo"><stop offset="0" stop-color="#ffffff" stop-opacity=".22"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient></defs>
+    <ellipse class="halo" cx="480" cy="700" rx="460" ry="330" fill="url(#halo)" opacity="0"/>
+    <g class="simb">${vazias}${brilhos}${cheias}</g>
+    <g class="marca"><text class="inst" x="480" y="1000" text-anchor="middle" font-family="Montserrat" font-weight="800" font-size="58" letter-spacing="26" fill="#b8c2e6">INSTITUTO</text>
+    <g class="nome" font-family="Montserrat" font-weight="900" font-size="200">
+      <text class="lb" x="262" y="1190" fill="#009c3b">b</text><text class="lr" x="387" y="1190" fill="#ffdf00">r</text>
+      <g class="g360"><text x="480" y="1190" fill="#eef1fb">360</text></g></g></g>
+    <g class="frase" font-family="Montserrat" font-weight="900" font-size="58">
+      <text class="w1" x="155" y="1330" fill="#F4F6FF">FATO,</text><text class="w2" x="365" y="1330" fill="#F4F6FF">FONTE</text>
+      <text class="w3" x="600" y="1330" fill="#ffc933">E PONTO</text><circle class="ponto" cx="868" cy="1322" r="10" fill="#ffc933"/></g>
+    <text class="arroba" x="480" y="1400" text-anchor="middle" font-family="Montserrat" font-weight="700" font-size="36" fill="#9cbcff">@newsbr360</text>
+  </svg>`;
+}
+document.getElementById('tela').innerHTML = desenho();
+document.getElementById('fim').innerHTML = desenho();
+// o "360" e o "b r" ficam centrados juntos: mede e acerta depois que a fonte carrega
+function acerta(svg) {
+  const lb = svg.querySelector('.lb'), lr = svg.querySelector('.lr'), t360 = svg.querySelector('.g360 text');
+  const wb = lb.getComputedTextLength(), wr = lr.getComputedTextLength(), w3 = t360.getComputedTextLength(), total = wb + wr + w3, x = 480 - total / 2;
+  lb.setAttribute('x', x); lr.setAttribute('x', x + wb); t360.setAttribute('x', x + wb + wr);
+  const ws = ['.w1', '.w2', '.w3'].map(s => svg.querySelector(s)), esp = 18, larguras = ws.map(w => w.getComputedTextLength());
+  let xx = 480 - (larguras.reduce((a, b) => a + b, 0) + esp * 2 + 22) / 2;
+  ws.forEach((w, i) => { w.setAttribute('x', xx); xx += larguras[i] + esp; });
+  svg.querySelector('.ponto').setAttribute('cx', xx - esp + 14);
+}
+// sons do estúdio (os mesmos da v2)
+const SONS = {carimbo: 'http://127.0.0.1:4400/sons/carimbo.mp3', pop: 'http://127.0.0.1:4400/sons/pop.mp3', chime: 'http://127.0.0.1:4400/sons/chime.mp3', whoosh: 'http://127.0.0.1:4400/sons/whoosh-short.mp3'};
+function som(n, v) { const a = new Audio(SONS[n]); a.volume = v; a.play().catch(() => {}); }
+let comSom = false;
+function tocar(sons) {
+  comSom = sons; gsap.globalTimeline.clear();
+  const svg = document.querySelector('#tela svg');
+  const q = s => svg.querySelectorAll(s), ord = s => [...q(s)].sort((a, b) => a.dataset.o - b.dataset.o);
+  const bb = svg.querySelector('.g360 text').getBBox(), o360 = `${bb.x + bb.width / 2} ${bb.y + bb.height / 2}`;
+  const tl = gsap.timeline({delay: .2});
+  tl.set([q('.ch'), q('.inst'), q('.lb'), q('.lr'), q('.g360'), q('.w1'), q('.w2'), q('.w3'), q('.ponto'), q('.arroba')], {opacity: 0})
+    .set(q('.halo'), {opacity: 0})
+    .fromTo(q('.vz'), {opacity: 0, scale: .6, transformOrigin: '50% 50%'}, {opacity: .35, scale: 1, duration: .3, stagger: .008})
+    .to(ord('.ch'), {opacity: 1, duration: .01, stagger: .055}, '+=.05')
+    .fromTo(ord('.ch'), {scale: .3, transformOrigin: '50% 50%'}, {scale: 1, duration: .28, stagger: .055, ease: 'back.out(3.5)'}, '<')
+    .fromTo(ord('.br'), {opacity: .9, scale: 1, transformOrigin: '50% 50%'}, {opacity: 0, scale: 1.9, duration: .4, stagger: .055}, '<');
+  const t0 = .55;
+  if (sons) [0, 6, 12, 18, 23].forEach((n, k) => tl.call(() => som('pop', .35), null, t0 + n * .055 + .2));
+  tl.to(q('.halo'), {opacity: 1, duration: .5}, '-=.3')
+    .to(q('.simb'), {scale: 1.035, transformOrigin: '480px 700px', duration: .25, yoyo: true, repeat: 1, ease: 'sine.inOut'}, '<')
+    // 16/10 (ele: "o Instituto br360 tem que entrar como carimbo"): o nome inteiro bate como o carimbo do veredito,
+    // 3 vezes maior até o lugar em 0,2 s, dá um tremor e o símbolo de cima sente o baque
+    .set([q('.inst'), q('.lb'), q('.lr'), q('.g360')], {opacity: 1})
+    .fromTo(q('.marca'), {scale: 3, svgOrigin: '480 1100'}, {scale: 1, svgOrigin: '480 1100', duration: .22, ease: 'power4.in'}, '-=.05')
+    .fromTo(q('.marca'), {opacity: 0}, {opacity: 1, duration: .07, ease: 'none'}, '<')
+    .addLabel('bate')
+    .to(q('.marca'), {scale: 1.04, svgOrigin: '480 1100', duration: .06, yoyo: true, repeat: 1}, 'bate')
+    .fromTo(q('.marca'), {x: 0}, {x: 7, duration: .04, yoyo: true, repeat: 3}, 'bate')
+    .fromTo(q('.simb'), {y: 0}, {y: -6, duration: .05, yoyo: true, repeat: 1}, 'bate');
+  if (sons) tl.call(() => som('carimbo', .85), null, 'bate');
+  tl.fromTo(q('.w1'), {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: .2}, '+=.05')
+    .fromTo(q('.w2'), {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: .2}, '+=.05')
+    .fromTo(q('.w3'), {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: .2}, '+=.05')
+    .fromTo(q('.ponto'), {opacity: 0, scale: 3, transformOrigin: '50% 50%'}, {opacity: 1, scale: 1, duration: .25, ease: 'back.out(3)'}, '+=.05');
+  if (sons) tl.call(() => som('pop', .45), null, '-=.15');
+  tl.fromTo(q('.arroba'), {opacity: 0}, {opacity: 1, duration: .3}, '+=.05');
+  if (sons) tl.call(() => som('chime', .3), null, '<');
+}
+document.fonts.ready.then(() => { document.querySelectorAll('.tela svg').forEach(acerta); tocar(false); });
+document.getElementById('som').addEventListener('click', () => tocar(true));
+document.getElementById('mudo').addEventListener('click', () => tocar(false));
+</script>
+</body>
+</html>
